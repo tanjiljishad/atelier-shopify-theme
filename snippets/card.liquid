@@ -1,0 +1,45 @@
+{%- comment -%}
+  Base card primitive (spec §4/§5.2: Surface/Card-tint plane, radius-card, hover
+  lift). Handles the simple "whole card links somewhere" case directly.
+
+  Composite cards with internal structure (product-card, blog-card, testimonial
+  card, etc. — later milestones) are expected to apply the `.card` / `.card--padded`
+  / `.card--interactive` classes to their own markup directly rather than force
+  their layout through this snippet's single-content-block shape; Liquid snippets
+  have no real "slot" mechanism, so trying to genericize a multi-region card here
+  would just reintroduce the duplication this system is trying to avoid.
+
+  Accepts:
+  - content (required): pre-rendered HTML/text, typically built with {% capture %}.
+  - href: optional link destination — renders <a> when present, <div> otherwise.
+  - interactive: bool, adds the hover-lift shadow transition. Defaults to true
+    when `href` is present, false otherwise.
+  - padded: bool, adds internal spacing. Defaults to true.
+{%- endcomment -%}
+{%- liquid
+  assign card_tag = 'div'
+  if href
+    assign card_tag = 'a'
+  endif
+
+  assign card_interactive = interactive
+  if interactive == blank and href
+    assign card_interactive = true
+  endif
+
+  assign card_padded = padded
+  if padded == blank
+    assign card_padded = true
+  endif
+
+  assign card_class = 'card'
+  if card_interactive
+    assign card_class = card_class | append: ' card--interactive'
+  endif
+  if card_padded
+    assign card_class = card_class | append: ' card--padded'
+  endif
+-%}
+<{{ card_tag }}{% if href %} href="{{ href }}"{% endif %} class="{{ card_class }}">
+  {{ content }}
+</{{ card_tag }}>

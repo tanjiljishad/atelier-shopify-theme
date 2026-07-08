@@ -1,0 +1,19 @@
+{%- comment -%}
+  Renders one icon from the sprite (snippets/icon-sprite.liquid).
+
+  Accepts:
+  - name (required): symbol name without the "icon-" prefix, e.g. 'plus', 'check'.
+  - size: pixel size, default 24.
+  - class: extra class(es) to add alongside the base "icon" class.
+
+  Icons are always decorative (aria-hidden + focusable="false") — when an icon sits
+  inside an icon-only button, the *button* carries the aria-label, not the icon
+  itself. This matches how every icon-only control in later milestones is expected
+  to be built: `<button aria-label="...">{% render 'icon', name: '...' %}</button>`.
+{%- endcomment -%}
+{%- liquid
+  assign icon_size = size | default: 24
+-%}
+<svg class="icon {{ class }}" width="{{ icon_size }}" height="{{ icon_size }}" aria-hidden="true" focusable="false">
+  <use href="#icon-{{ name }}"></use>
+</svg>

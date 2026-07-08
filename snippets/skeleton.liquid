@@ -1,0 +1,27 @@
+{%- comment -%}
+  Loading skeleton (spec §5.6): Card-tint blocks matching real component geometry,
+  never a spinner, for content areas. Shimmer respects reduced-motion (goes static).
+
+  Accepts:
+  - type: 'card' (default, image + 2 text lines + price line) | 'image' | 'line' | 'price'
+  - aspect_ratio: passed through to the image block, default '4/5' (product-card ratio)
+{%- endcomment -%}
+{%- liquid
+  assign skeleton_type = type | default: 'card'
+  assign skeleton_ratio = aspect_ratio | default: '4/5'
+-%}
+{%- case skeleton_type -%}
+  {%- when 'image' -%}
+    <div class="skeleton skeleton__image" style="aspect-ratio: {{ skeleton_ratio }};" aria-hidden="true"></div>
+  {%- when 'line' -%}
+    <div class="skeleton skeleton__line" aria-hidden="true"></div>
+  {%- when 'price' -%}
+    <div class="skeleton skeleton__line skeleton__line--price" aria-hidden="true"></div>
+  {%- else -%}
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton skeleton__image" style="aspect-ratio: {{ skeleton_ratio }};"></div>
+      <div class="skeleton skeleton__line"></div>
+      <div class="skeleton skeleton__line skeleton__line--short"></div>
+      <div class="skeleton skeleton__line skeleton__line--price"></div>
+    </div>
+{%- endcase -%}

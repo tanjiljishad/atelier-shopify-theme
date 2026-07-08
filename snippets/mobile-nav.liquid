@@ -1,0 +1,102 @@
+{%- comment -%}
+  Mobile navigation drawer (spec §5.1): full-height left drawer, top-level
+  links push a sliding sub-panel in from the right with a "back" header —
+  <mobile-nav-drawer> (assets/mobile-nav.js) extends the generic
+  <theme-drawer> (open/close/focus-trap/scroll-lock/escape) and adds only the
+  panel-push navigation on top, so none of that shared behavior is duplicated.
+
+  Bottom utility block is intentionally just Account + the dark-mode toggle
+  (when relevant) — currency/locale selectors need Shopify Markets configured
+  and social icons need social-link settings, neither of which exist yet;
+  shipping non-functional placeholders for either would be worse than
+  omitting them until a milestone actually adds that configuration.
+
+  Accepts: section (needs section.settings.menu).
+{%- endcomment -%}
+<mobile-nav-drawer id="MobileNav" side="left" class="mobile-nav" hidden>
+  <div class="drawer__scrim" data-drawer-dismiss></div>
+  <div class="drawer__panel mobile-nav__panel" role="dialog" aria-modal="true" aria-label="{{ 'accessibility.mobile_menu' | t }}">
+    <div class="mobile-nav__header">
+      <span class="mobile-nav__header-title">{{ shop.name }}</span>
+      <button type="button" class="btn-icon" data-drawer-close aria-label="{{ 'general.close' | t }}">
+        {% render 'icon', name: 'plus', class: 'icon--rotate-45' %}
+      </button>
+    </div>
+
+    <div class="mobile-nav__panels">
+      <div class="mobile-nav__screen is-active" data-mobile-nav-screen="root">
+        <ul class="mobile-nav__list list-unstyled">
+          {%- for link in section.settings.menu.links -%}
+            <li class="mobile-nav__item">
+              {%- if link.links.size > 0 -%}
+                <button type="button" class="mobile-nav__link mobile-nav__link--parent" data-submenu-open="submenu-{{ forloop.index }}">
+                  <span>{{ link.title }}</span>
+                  {% render 'icon', name: 'chevron-down', class: 'icon--rotate-neg90' %}
+                </button>
+              {%- else -%}
+                <a href="{{ link.url }}" class="mobile-nav__link">{{ link.title }}</a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+
+      {%- for link in section.settings.menu.links -%}
+        {%- if link.links.size > 0 -%}
+          <div class="mobile-nav__screen" data-mobile-nav-screen="submenu-{{ forloop.index }}">
+            <button type="button" class="mobile-nav__back" data-submenu-back>
+              {% render 'icon', name: 'chevron-down', class: 'icon--rotate-90' %}
+              <span>{{ link.title }}</span>
+            </button>
+            <ul class="mobile-nav__list list-unstyled">
+              <li>
+                <a href="{{ link.url }}" class="mobile-nav__link mobile-nav__link--all">{{ 'general.view_all' | t }} {{ link.title }}</a>
+              </li>
+              {%- for child in link.links -%}
+                <li>
+                  {%- if child.links.size > 0 -%}
+                    <button type="button" class="mobile-nav__link mobile-nav__link--parent" data-submenu-open="submenu-{{ forloop.parentloop.index }}-{{ forloop.index }}">
+                      <span>{{ child.title }}</span>
+                      {% render 'icon', name: 'chevron-down', class: 'icon--rotate-neg90' %}
+                    </button>
+                  {%- else -%}
+                    <a href="{{ child.url }}" class="mobile-nav__link">{{ child.title }}</a>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+
+          {%- for child in link.links -%}
+            {%- if child.links.size > 0 -%}
+              <div class="mobile-nav__screen" data-mobile-nav-screen="submenu-{{ forloop.parentloop.index }}-{{ forloop.index }}">
+                <button type="button" class="mobile-nav__back" data-submenu-back>
+                  {% render 'icon', name: 'chevron-down', class: 'icon--rotate-90' %}
+                  <span>{{ child.title }}</span>
+                </button>
+                <ul class="mobile-nav__list list-unstyled">
+                  <li>
+                    <a href="{{ child.url }}" class="mobile-nav__link mobile-nav__link--all">{{ 'general.view_all' | t }} {{ child.title }}</a>
+                  </li>
+                  {%- for grandchild in child.links -%}
+                    <li><a href="{{ grandchild.url }}" class="mobile-nav__link">{{ grandchild.title }}</a></li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="mobile-nav__footer">
+      <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.login_url }}{% endif %}" class="mobile-nav__footer-link">
+        {% render 'icon', name: 'user', size: 18 %}
+        {{ 'general.account' | t }}
+      </a>
+      {%- if settings.color_scheme_mode == 'user' -%}
+        {% render 'switch', id: 'MobileColorModeToggle', name: 'color_mode', label: 'accessibility.dark_mode_toggle' | t %}
+      {%- endif -%}
+    </div>
+  </div>
+</mobile-nav-drawer>

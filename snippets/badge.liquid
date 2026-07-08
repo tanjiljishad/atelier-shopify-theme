@@ -1,0 +1,18 @@
+{%- comment -%}
+  Typographic badge chip (spec §5.2, §11 — "badges are typographic chips, never
+  ribbons or starbursts"). Purely presentational text-in-a-box; placement rules
+  (max 2 per card, priority order) are each caller's concern, not this snippet's.
+
+  Accepts:
+  - text (required): badge label, e.g. "New", "Sale −20%", "Sold out".
+  - tone: 'new' (default) | 'sale' | 'sold-out' | 'success' | 'warning' | 'info' | 'accent'
+
+  Tones deliberately reuse existing color-scheme roles instead of introducing new
+  settings: 'new' and 'sale' reuse the primary-button pairing (a fill color + its
+  already-guaranteed-readable label color), so no new "badge text on strong fill"
+  token/setting was needed.
+{%- endcomment -%}
+{%- liquid
+  assign badge_tone = tone | default: 'new'
+-%}
+<span class="badge badge--{{ badge_tone }}">{{ text }}</span>

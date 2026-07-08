@@ -1,0 +1,43 @@
+{%- comment -%}
+  Generic header action icon button — search/account/cart/wishlist/compare are
+  all "icon + optional count bubble" (spec §5.1), so this one snippet renders
+  all five instead of five near-identical copies.
+
+  Accepts:
+  - icon (required): sprite icon name
+  - label (required): accessible name (aria-label) — always includes the
+    count in the label itself (e.g. "Cart, 3 items"), never relying on the
+    visible bubble alone, since the bubble is aria-hidden.
+  - href: link destination — renders <a>. Omit for actions that open a
+    drawer/overlay instead of navigating (renders <button type="button">).
+  - id: optional element id (used by JS to target this specific action, e.g.
+    "CartLink" for the AJAX-ready cart count hook).
+  - drawer_target: optional — sets data-drawer-open="{{ drawer_target }}"
+    (see assets/drawer.js) so this button opens that <theme-drawer>.
+  - count: optional integer — renders a visible count bubble. Pass 0 to
+    render the bubble hidden (via .is-hidden) rather than omitting it, so
+    JS only ever has to toggle a class, never create/remove the element.
+{%- endcomment -%}
+{%- liquid
+  assign tag = 'a'
+  if href == blank
+    assign tag = 'button'
+  endif
+-%}
+<{{ tag }}
+  class="header-action"
+  {% if href %}
+    href="{{ href }}"
+  {% else %}
+    type="button"
+  {% endif %}
+  {% if id %}id="{{ id }}"{% endif %}
+  {% if drawer_target %}data-drawer-open="{{ drawer_target }}"{% endif %}
+  {% if count != blank %}data-label="{{ label | escape }}"{% endif %}
+  aria-label="{{ label }}"
+>
+  {% render 'icon', name: icon, size: 22 %}
+  {%- if count != blank -%}
+    <span class="header-action__bubble{% if count == 0 %} is-hidden{% endif %}" data-header-action-count aria-hidden="true">{{ count }}</span>
+  {%- endif -%}
+</{{ tag }}>

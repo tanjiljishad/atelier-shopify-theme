@@ -1,0 +1,48 @@
+{%- comment -%}
+  Mega menu panel (spec §5.1): full-width, 3-4 link columns (H6 kicker + nav
+  links) + up to 2 promo image cards. Promo images are matched to a top-level
+  menu item by exact title (see mega_menu_promo block schema in
+  sections/header.liquid) since Shopify's navigation editor has no native way
+  to attach an image to a specific menu item — the least-fragile option
+  available without a custom metaobject system, which is out of scope here.
+
+  `data-nav-panel` is the shared marker assets/mega-menu.js hooks into (see
+  header-dropdown.liquid for the other panel type it enhances identically).
+
+  Accepts: link, index, section (for settings + matching promo blocks).
+{%- endcomment -%}
+{%- capture promo_html -%}
+  {%- assign promo_count = 0 -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'mega_menu_promo' and block.settings.menu_item_title == link.title and promo_count < 2 -%}
+      <a href="{{ block.settings.url }}" class="mega-menu__promo" {{ block.shopify_attributes }}>
+        {% render 'responsive-image', image: block.settings.image, aspect_ratio: '4/5', sizes: '240px', class: 'mega-menu__promo-image' %}
+        {%- if block.settings.heading != blank -%}
+          <span class="mega-menu__promo-heading">{{ block.settings.heading }}</span>
+        {%- endif -%}
+      </a>
+      {%- assign promo_count = promo_count | plus: 1 -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+<div class="mega-menu" id="NavPanel-{{ index }}" data-nav-panel hidden>
+  <div class="mega-menu__inner container container--wide">
+    <div class="mega-menu__columns">
+      {%- for child in link.links -%}
+        <div class="mega-menu__column">
+          <a href="{{ child.url }}" class="mega-menu__column-title kicker">{{ child.title }}</a>
+          {%- if child.links.size > 0 -%}
+            <ul class="mega-menu__column-links list-unstyled">
+              {%- for grandchild in child.links -%}
+                <li><a href="{{ grandchild.url }}" class="mega-menu__link">{{ grandchild.title }}</a></li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+    {%- if promo_html != blank -%}
+      <div class="mega-menu__promos">{{ promo_html }}</div>
+    {%- endif -%}
+  </div>
+</div>

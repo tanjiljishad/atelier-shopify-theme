@@ -1,0 +1,48 @@
+{%- comment -%}
+  Quantity selector (spec §5.3): segmented −/value/+ control, 112×48px. Markup for
+  the <quantity-input> custom element (assets/quantity-input.js), which owns the
+  +/− click handling, min/max clamping, and long-press repeat — this snippet only
+  builds the accessible markup contract the element expects.
+
+  Works with zero JS too: the number input's native spinner/typing still functions
+  and still respects min/max, so this degrades to a plain (if less pretty) number
+  field if the custom element script hasn't loaded yet or fails.
+
+  Accepts:
+  - id: input id, defaults to "Quantity"
+  - name: form field name, defaults to "quantity"
+  - value: current value, defaults to 1
+  - min: defaults to 1
+  - max: optional
+  - label: accessible name for the input, defaults to t:general.quantity.label
+{%- endcomment -%}
+{%- liquid
+  assign qty_id = id | default: 'Quantity'
+  assign qty_name = name | default: 'quantity'
+  assign qty_value = value | default: 1
+  assign qty_min = min | default: 1
+  if label
+    assign qty_label = label
+  else
+    assign qty_label = 'general.quantity.label' | t
+  endif
+-%}
+<quantity-input class="quantity-input" min="{{ qty_min }}"{% if max %} max="{{ max }}"{% endif %}>
+  <button type="button" class="quantity-input__button quantity-input__button--decrease" aria-label="{{ 'general.quantity.decrease' | t }}">
+    {% render 'icon', name: 'minus', size: 16 %}
+  </button>
+  <input
+    class="quantity-input__value"
+    type="number"
+    inputmode="numeric"
+    id="{{ qty_id }}"
+    name="{{ qty_name }}"
+    value="{{ qty_value }}"
+    min="{{ qty_min }}"
+    {% if max %}max="{{ max }}"{% endif %}
+    aria-label="{{ qty_label }}"
+  >
+  <button type="button" class="quantity-input__button quantity-input__button--increase" aria-label="{{ 'general.quantity.increase' | t }}">
+    {% render 'icon', name: 'plus', size: 16 %}
+  </button>
+</quantity-input>

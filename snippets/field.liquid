@@ -1,0 +1,101 @@
+{%- comment -%}
+  Unified text-entry field (spec §5.3): covers text/email/tel/number/password,
+  textarea, and select in one snippet since they share the same label/wrapper/
+  validation-message structure — keeping that structure in one place instead of
+  three near-identical copies.
+
+  Accepts:
+  - id (required), label (required)
+  - type: 'text' (default) | 'email' | 'tel' | 'number' | 'password' | 'textarea' | 'select'
+  - name: form field name, defaults to id
+  - value, placeholder, autocomplete, required (bool), rows (textarea, default 4)
+  - options: for type 'select' — array of { value, label }
+  - error: error message string — presence puts the field in its error state
+  - success_message: presence puts the field in its success state (mutually
+    exclusive with error; caller decides which applies)
+  - help_text: shown only when there's no error/success message
+
+  Floating labels are intentionally not used (spec §5.3: "visible labels beat them
+  for a11y and clarity") — the label is always a real, visible <label> above the
+  control.
+{%- endcomment -%}
+{%- liquid
+  assign field_type = type | default: 'text'
+  assign field_name = name | default: id
+  assign message_id = id | append: '-message'
+  assign has_message = false
+  if error or success_message or help_text
+    assign has_message = true
+  endif
+
+  assign field_state = ''
+  if error
+    assign field_state = ' field--error'
+  elsif success_message
+    assign field_state = ' field--success'
+  endif
+-%}
+<div class="field{{ field_state }}">
+  <label class="field__label" for="{{ id }}">
+    {{ label }}{% if required %} <span aria-hidden="true">*</span>{% endif %}
+  </label>
+
+  <div class="field__control">
+    {%- if field_type == 'textarea' -%}
+      <textarea
+        class="field__input field__input--textarea"
+        id="{{ id }}"
+        name="{{ field_name }}"
+        rows="{{ rows | default: 4 }}"
+        {% if placeholder %}placeholder="{{ placeholder | escape }}"{% endif %}
+        {% if required %}required aria-required="true"{% endif %}
+        {% if has_message %}aria-describedby="{{ message_id }}"{% endif %}
+        {% if error %}aria-invalid="true"{% endif %}
+      >{{ value }}</textarea>
+    {%- elsif field_type == 'select' -%}
+      <select
+        class="field__input field__input--select"
+        id="{{ id }}"
+        name="{{ field_name }}"
+        {% if required %}required aria-required="true"{% endif %}
+        {% if has_message %}aria-describedby="{{ message_id }}"{% endif %}
+        {% if error %}aria-invalid="true"{% endif %}
+      >
+        {%- for option in options -%}
+          <option value="{{ option.value }}"{% if option.value == value %} selected{% endif %}>{{ option.label }}</option>
+        {%- endfor -%}
+      </select>
+      {% render 'icon', name: 'chevron-down', size: 16, class: 'field__select-icon' %}
+    {%- else -%}
+      <input
+        class="field__input"
+        type="{{ field_type }}"
+        id="{{ id }}"
+        name="{{ field_name }}"
+        value="{{ value }}"
+        {% if placeholder %}placeholder="{{ placeholder | escape }}"{% endif %}
+        {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+        {% if required %}required aria-required="true"{% endif %}
+        {% if has_message %}aria-describedby="{{ message_id }}"{% endif %}
+        {% if error %}aria-invalid="true"{% endif %}
+      >
+      {%- if success_message -%}
+        {% render 'icon', name: 'check', size: 16, class: 'field__status-icon field__status-icon--success' %}
+      {%- elsif error -%}
+        {% render 'icon', name: 'circle-alert', size: 16, class: 'field__status-icon field__status-icon--error' %}
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  {%- if error -%}
+    <p class="field__message field__message--error" id="{{ message_id }}">
+      {% render 'icon', name: 'circle-alert', size: 16 %}{{ error }}
+    </p>
+  {%- elsif success_message -%}
+    <p class="field__message field__message--success" id="{{ message_id }}">
+      {% render 'icon', name: 'check', size: 16 %}{{ success_message }}
+    </p>
+  {%- elsif help_text -%}
+    <p class="field__message field__message--help" id="{{ message_id }}">{{ help_text }}</p>
+  {%- endif -%}
+</div>

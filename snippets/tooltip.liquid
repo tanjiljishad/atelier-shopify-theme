@@ -1,0 +1,33 @@
+{%- comment -%}
+  Tooltip (spec §5.3 "Name on hover tooltip").
+
+  Note on approach: this was initially attempted on the native Popover API
+  (`popover`/`popovertarget`) to get light-dismiss and Escape-handling for free.
+  That turned out to be the wrong tool here — popover content renders in the
+  top layer, detached from its trigger's normal containing block, so anchoring it
+  directly above/below the trigger would need either CSS anchor positioning
+  (too new for reliable cross-browser use today) or manual JS measurement on
+  every show. For a small, local, hover-triggered tooltip, plain
+  position:relative/absolute (see assets/tooltip.js) is simpler and behaves
+  correctly with zero positioning bugs — the right trade-off given the Popover
+  API's benefits here were marginal anyway (a hover tooltip already closes on
+  mouseleave/blur without needing light-dismiss).
+
+  Accepts:
+  - id (required): must be unique per instance on the page (e.g. "swatch-{{ forloop.index }}")
+  - trigger (required): captured HTML/text for the visible trigger
+  - content (required): tooltip body text
+  - position: 'top' (default) | 'bottom'
+{%- endcomment -%}
+{%- liquid
+  assign tooltip_position = position | default: 'top'
+  assign tooltip_id = 'tooltip-' | append: id
+-%}
+<span class="tooltip">
+  <button type="button" class="tooltip__trigger" aria-describedby="{{ tooltip_id }}">
+    {{ trigger }}
+  </button>
+  <span class="tooltip__content tooltip__content--{{ tooltip_position }}" id="{{ tooltip_id }}" role="tooltip">
+    {{ content }}
+  </span>
+</span>

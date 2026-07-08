@@ -1,0 +1,25 @@
+{%- comment -%}
+  Single accordion item (spec §5.4), built on native <details>/<summary> rather
+  than a fully custom ARIA widget — the browser already provides correct
+  expand/collapse semantics, keyboard support (Enter/Space on summary), and state
+  announcement for free, and the markup still works with zero JS (instant
+  open/close, no animation). assets/accordion.js progressively enhances any
+  <accordion-group> wrapping one or more of these with the animated open/close and
+  optional one-open-at-a-time behavior.
+
+  The "+" glyph rotates 45° into a close "×" via CSS on [open] — one icon, not two.
+
+  Accepts:
+  - title (required), content (required, captured HTML)
+  - open (bool): renders already expanded
+  - id: optional, for deep-linking (#faq-shipping etc.)
+{%- endcomment -%}
+<details class="accordion-item"{% if open %} open{% endif %}{% if id %} id="{{ id }}"{% endif %}>
+  <summary class="accordion-item__header">
+    <span class="accordion-item__title">{{ title }}</span>
+    <span class="accordion-item__icon">{% render 'icon', name: 'plus' %}</span>
+  </summary>
+  <div class="accordion-item__panel">
+    <div class="accordion-item__panel-inner prose">{{ content }}</div>
+  </div>
+</details>

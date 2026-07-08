@@ -1,0 +1,54 @@
+{%- comment -%}
+  Desktop navigation (spec §5.1). For each top-level link with children, picks
+  one of two panel types since Shopify's native navigation editor has no
+  per-item "make this a mega menu" flag to hang that choice on:
+  - Mega menu panel: used when the item has grandchildren (genuine multi-level
+    depth) AND section.settings.enable_mega_menu is on.
+  - Standard dropdown: used for everything else with children — a shallow
+    single-level submenu, or any submenu at all when mega menu is disabled.
+
+  Accepts: section (required — needs section.settings.menu / .enable_mega_menu
+  and section.blocks for mega-menu promo matching).
+{%- endcomment -%}
+<nav class="header-nav" aria-label="{{ 'accessibility.main_menu' | t }}">
+  <ul class="header-nav__list list-unstyled">
+    {%- for link in section.settings.menu.links -%}
+      {%- liquid
+        assign has_children = false
+        assign has_grandchildren = false
+        if link.links.size > 0
+          assign has_children = true
+        endif
+        for child in link.links
+          if child.links.size > 0
+            assign has_grandchildren = true
+          endif
+        endfor
+        assign use_mega_menu = false
+        if has_grandchildren and section.settings.enable_mega_menu
+          assign use_mega_menu = true
+        endif
+      -%}
+      <li class="header-nav__item{% if has_children %} header-nav__item--has-children{% endif %}">
+        <a
+          href="{{ link.url }}"
+          class="header-nav__link"
+          {%- if has_children %}
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="NavPanel-{{ forloop.index }}"
+          {%- endif %}
+        >
+          {{ link.title }}
+        </a>
+        {%- if has_children -%}
+          {%- if use_mega_menu -%}
+            {% render 'header-mega-menu', link: link, index: forloop.index, section: section %}
+          {%- else -%}
+            {% render 'header-dropdown', link: link, index: forloop.index %}
+          {%- endif -%}
+        {%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+</nav>

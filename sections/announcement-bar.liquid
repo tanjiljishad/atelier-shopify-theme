@@ -1,0 +1,123 @@
+{%- comment -%}
+  Announcement bar (spec §5.1). One message visible at a time; with 2+ blocks
+  and rotation enabled, <announcement-bar> (assets/announcement-bar.js)
+  crossfades between them and pauses on hover/focus. Dismiss persists via the
+  storage adapter (assets/theme-storage.js), never a raw localStorage call.
+
+  Countdown is intentionally architecture-only this milestone: the block
+  setting exists so merchants/content can already be authored against it, but
+  no ticking display is rendered yet — see the block schema info text.
+
+  Not aria-live: auto-rotating text re-announced every few seconds would spam
+  screen reader users; the pause-on-focus behavior plus the dismiss control
+  are the accessible affordances here (WCAG 2.2.2 Pause/Stop/Hide), not a live
+  region.
+{%- endcomment -%}
+{%- if section.settings.show_announcement and section.blocks.size > 0 -%}
+  <announcement-bar
+    class="announcement-bar color-scheme-{{ section.settings.color_scheme }}"
+    data-rotation="{{ section.settings.enable_rotation }}"
+    data-speed="{{ section.settings.rotation_speed }}"
+  >
+    <div class="announcement-bar__track">
+      {%- for block in section.blocks -%}
+        <div class="announcement-bar__item{% if forloop.first %} is-active{% endif %}" {{ block.shopify_attributes }}>
+          {%- if block.settings.link != blank -%}
+            <a class="announcement-bar__link" href="{{ block.settings.link }}">{{ block.settings.text }}</a>
+          {%- else -%}
+            <p class="announcement-bar__text">{{ block.settings.text }}</p>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+    {%- if section.settings.dismissible -%}
+      <button type="button" class="announcement-bar__dismiss" aria-label="{{ 'accessibility.dismiss_announcement' | t }}">
+        {% render 'icon', name: 'plus', size: 14, class: 'icon--rotate-45' %}
+      </button>
+    {%- endif -%}
+  </announcement-bar>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_announcement",
+      "label": "Show announcement bar",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_rotation",
+      "label": "Rotate messages",
+      "default": true,
+      "info": "Only applies with 2 or more messages below."
+    },
+    {
+      "type": "range",
+      "id": "rotation_speed",
+      "label": "Rotation speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "dismissible",
+      "label": "Allow visitors to dismiss",
+      "default": true,
+      "info": "Remembered per browser once closed."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "Message",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Message",
+          "default": "Free shipping on orders over $150"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_countdown",
+          "label": "Enable countdown",
+          "default": false,
+          "info": "Reserved for a future milestone. The end date is stored, but no countdown is displayed yet."
+        },
+        {
+          "type": "text",
+          "id": "countdown_date",
+          "label": "Countdown end date",
+          "info": "ISO format, e.g. 2026-12-31T23:59:59.",
+          "visible_if": "{{ block.settings.enable_countdown == true }}"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 5,
+  "presets": [
+    {
+      "name": "Announcement bar",
+      "blocks": [{ "type": "announcement" }]
+    }
+  ]
+}
+{% endschema %}

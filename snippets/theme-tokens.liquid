@@ -1,0 +1,185 @@
+{%- comment -%}
+  Single source of truth for the Atelier design system (spec §14). Emits every CSS
+  custom property consumed by the theme. Rendered once, inline, in layout/theme.liquid
+  <head>, before theme.css loads.
+
+  Color scheme mechanism:
+  - `settings.color_schemes` (a color_scheme_group) holds up to 5 merchant-editable
+    palettes. scheme-1 is the designed light palette, scheme-2 is the designed dark
+    "Gallery at Night" palette; scheme-3..5 are free for merchants to customize.
+  - Every scheme is emitted as a reusable `.color-scheme-{id}` utility class so any
+    future section/block can paint itself with any of the 5 schemes independently
+    (Shopify's standard per-section color painting pattern).
+  - Separately, the *site-wide* base palette (what :root uses before any section
+    override) is resolved from `settings.color_scheme_mode` via one shared attribute,
+    `[data-color-mode]`, set on <html>:
+      - "light"  -> Liquid renders data-color-mode="light" (no override needed)
+      - "dark"   -> Liquid renders data-color-mode="dark"
+      - "system" -> Liquid renders data-color-mode="system"; a prefers-color-scheme
+                    media query supplies the dark override
+      - "user"   -> Liquid renders data-color-mode="light" as a safe default; a tiny
+                    blocking inline script in <head> (see layout/theme.liquid)
+                    overwrites the attribute from localStorage/system preference
+                    before first paint, using this exact same attribute/selector.
+  This keeps light/dark resolution to a single mechanism regardless of *why* dark mode
+  is active, so there is only one CSS override block to maintain.
+{%- endcomment -%}
+
+{%- liquid
+  assign light_scheme_settings = blank
+  assign dark_scheme_settings = blank
+-%}
+
+<style id="theme-tokens">
+  {%- for scheme in settings.color_schemes -%}
+    .color-scheme-{{ scheme.id }} {
+      {%- render 'theme-color-scheme-vars', scheme_settings: scheme.settings -%}
+    }
+    {%- if scheme.id == 'scheme-1' -%}
+      {%- assign light_scheme_settings = scheme.settings -%}
+    {%- endif -%}
+    {%- if scheme.id == 'scheme-2' -%}
+      {%- assign dark_scheme_settings = scheme.settings -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  :root {
+    /* Color — defaults to Scheme 1 (light) until overridden by [data-color-mode] */
+    {%- render 'theme-color-scheme-vars', scheme_settings: light_scheme_settings -%}
+    --color-overlay: rgba(28, 27, 24, 0.45);
+
+    /* Fonts */
+    {%- if settings.use_custom_typography -%}
+      --font-display: 'Marcellus', Georgia, 'Times New Roman', serif;
+      --font-body: 'Instrument Sans', Helvetica, Arial, sans-serif;
+    {%- else -%}
+      --font-display: {{ settings.type_header_font.family }}, {{ settings.type_header_font.fallback_families }};
+      --font-body: {{ settings.type_body_font.family }}, {{ settings.type_body_font.fallback_families }};
+    {%- endif -%}
+
+    /* Type scale — base size + display scale are merchant-adjustable; the ratios
+       between styles are normative (spec §3) so the whole scale moves together. */
+    --base-font-size: {{ settings.base_font_size }}px;
+    --type-scale: {{ settings.type_scale | times: 1.0 | divided_by: 100.0 }};
+
+    --text-h1: clamp(calc(2.5rem * var(--type-scale)), 5vw, calc(4rem * var(--type-scale)));
+    --text-h2: clamp(calc(1.875rem * var(--type-scale)), 4vw, calc(2.625rem * var(--type-scale)));
+    --text-h3: clamp(calc(1.5rem * var(--type-scale)), 3vw, calc(1.875rem * var(--type-scale)));
+    --text-h4: clamp(calc(1.125rem * var(--type-scale)), 1.5vw, calc(1.25rem * var(--type-scale)));
+    --text-h5: calc(var(--base-font-size) * 1.0667);
+    --text-h6: calc(var(--base-font-size) * 0.8);
+    --text-body-large: calc(var(--base-font-size) * 1.2);
+    --text-body: var(--base-font-size);
+    --text-small: calc(var(--base-font-size) * 0.8667);
+    --text-caption: calc(var(--base-font-size) * 0.7333);
+    --text-button: calc(var(--base-font-size) * 0.8667);
+    --text-navigation: calc(var(--base-font-size) * 0.9333);
+    --text-price-card: var(--base-font-size);
+    --text-price-pdp: calc(var(--base-font-size) * 1.3333);
+
+    --lh-h1: 1.08;
+    --lh-h2: 1.15;
+    --lh-h3: 1.25;
+    --lh-h4: 1.3;
+    --lh-h5: 1.4;
+    --lh-h6: 1.4;
+    --lh-body-large: 1.6;
+    --lh-body: 1.65;
+    --lh-small: 1.5;
+    --lh-caption: 1.4;
+    --lh-tight: 1;
+
+    --track-display: {{ settings.heading_letter_spacing | times: 1.0 | divided_by: 100.0 }}em;
+    --track-kicker: 0.16em;
+    --track-caps: 0.12em;
+    --track-price: 0.02em;
+    --track-nav: 0.04em;
+
+    /* Spacing — 8pt scale (spec §4). Only the section-rhythm steps (9-11) respond to
+       the merchant's spacing-scale slider; micro/component spacing stays fixed so
+       cards and controls never look broken at the scale extremes. */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+    --space-8: 64px;
+    --space-9: calc(96px * {{ settings.section_spacing_scale | times: 1.0 | divided_by: 100.0 }});
+    --space-10: calc(128px * {{ settings.section_spacing_scale | times: 1.0 | divided_by: 100.0 }});
+    --space-11: calc(160px * {{ settings.section_spacing_scale | times: 1.0 | divided_by: 100.0 }});
+    --grid-gap: {{ settings.grid_gap }}px;
+
+    /* Layout */
+    --container-wide: {{ settings.container_width_wide }}px;
+    --container-content: {{ settings.container_width_content }}px;
+    --page-gutter: 48px;
+
+    /* Radius */
+    --radius-btn: {{ settings.radius_buttons }}px;
+    --radius-input: {{ settings.radius_inputs }}px;
+    --radius-card: {{ settings.radius_cards }}px;
+    --radius-image: {{ settings.radius_images }}px;
+    --radius-md: 8px;
+    --radius-pill: 999px;
+
+    /* Shadows — fixed warm-ink values (spec §4); not merchant-configurable so
+       elevation never drifts toward a cold/neutral gray. */
+    --shadow-sm: 0 1px 2px rgba(28, 27, 24, 0.05);
+    --shadow-md: 0 2px 8px rgba(28, 27, 24, 0.06), 0 1px 2px rgba(28, 27, 24, 0.04);
+    --shadow-lg: 0 8px 28px rgba(28, 27, 24, 0.1), 0 2px 6px rgba(28, 27, 24, 0.05);
+    --shadow-float: 0 16px 48px rgba(28, 27, 24, 0.14), 0 4px 12px rgba(28, 27, 24, 0.06);
+    --shadow-modal: 0 24px 64px rgba(28, 27, 24, 0.18);
+
+    /* Motion */
+    --dur-instant: 120ms;
+    --dur-fast: 200ms;
+    --dur-base: 300ms;
+    --dur-slow: 450ms;
+    --dur-editorial: 700ms;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+    /* Z-index */
+    --z-base: 0;
+    --z-sticky: 100;
+    --z-header: 200;
+    --z-dropdown: 300;
+    --z-cookie: 350;
+    --z-drawer: 400;
+    --z-modal: 500;
+    --z-toast: 600;
+
+    /* Opacity */
+    --opacity-disabled: 0.4;
+    --opacity-muted-media: 0.6;
+    --opacity-logo: 0.45;
+  }
+
+  html[data-color-mode='dark'] {
+    {%- render 'theme-color-scheme-vars', scheme_settings: dark_scheme_settings -%}
+  }
+
+  @media (prefers-color-scheme: dark) {
+    html[data-color-mode='system'] {
+      {%- render 'theme-color-scheme-vars', scheme_settings: dark_scheme_settings -%}
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      /* Spec §10: reduced motion collapses everything to a short 80ms opacity fade.
+         Components are responsible for switching to opacity-only transitions and
+         skipping transform-based effects (parallax, Ken-Burns, shimmer) when
+         `window.matchMedia('(prefers-reduced-motion: reduce)').matches` is true;
+         this token change only shortens the timing floor for anything that remains. */
+      --dur-instant: 80ms;
+      --dur-fast: 80ms;
+      --dur-base: 80ms;
+      --dur-slow: 80ms;
+      --dur-editorial: 80ms;
+    }
+  }
+</style>

@@ -1,0 +1,52 @@
+{%- comment -%}
+  Search drawer (spec §5.1) — a right-side <theme-drawer> (no subclassing
+  needed, unlike mobile nav, since it has no nested-panel behavior of its
+  own) wrapping <predictive-search> (assets/predictive-search.js), which
+  fetches sections/predictive-search.liquid via the Section Rendering API so
+  results reuse the same price/responsive-image/icon snippets as everywhere
+  else in the theme rather than re-implementing money/image formatting in JS.
+{%- endcomment -%}
+<theme-drawer id="SearchDrawer" side="right" class="search-drawer" hidden>
+  <div class="drawer__scrim" data-drawer-dismiss></div>
+  <div class="drawer__panel search-drawer__panel" role="dialog" aria-modal="true" aria-label="{{ 'general.search' | t }}">
+    <predictive-search class="predictive-search" data-url="{{ routes.predictive_search_url }}">
+      <form action="{{ routes.search_url }}" method="get" role="search" class="search-drawer__form">
+        <span class="search-drawer__form-icon">{% render 'icon', name: 'search', size: 20 %}</span>
+        <input
+          type="search"
+          name="q"
+          class="search-drawer__input"
+          placeholder="{{ 'general.search_placeholder' | t }}"
+          aria-label="{{ 'general.search' | t }}"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          data-predictive-search-input
+        >
+        <button type="button" class="btn-icon" data-drawer-close aria-label="{{ 'general.close' | t }}">
+          {% render 'icon', name: 'plus', class: 'icon--rotate-45' %}
+        </button>
+      </form>
+
+      <div class="search-drawer__body">
+        <div class="search-drawer__panel-group" data-predictive-search-recent hidden>
+          <p class="kicker">{{ 'general.search_recent' | t }}</p>
+          <div class="search-drawer__recent-list" data-predictive-search-recent-list></div>
+        </div>
+
+        <div class="search-drawer__panel-group" data-predictive-search-loading hidden>
+          {% render 'skeleton', type: 'line' %}
+          {% render 'skeleton', type: 'line' %}
+          {% render 'skeleton', type: 'line' %}
+        </div>
+
+        <div class="search-drawer__panel-group" data-predictive-search-results></div>
+
+        <div class="search-drawer__empty" data-predictive-search-empty hidden>
+          {% render 'icon', name: 'search', size: 32 %}
+          <p>{{ 'general.search_no_results' | t }}</p>
+        </div>
+      </div>
+    </predictive-search>
+  </div>
+</theme-drawer>

@@ -1,0 +1,12 @@
+{%- comment -%}
+  Section divider (spec §11): a short centered hairline by default, or a single
+  bronze diamond for sparing editorial use. Purely decorative — role="presentation"
+  keeps it out of the accessibility tree.
+
+  Accepts:
+  - variant: 'line' (default) | 'diamond'
+{%- endcomment -%}
+{%- liquid
+  assign divider_variant = variant | default: 'line'
+-%}
+<div class="divider divider--{{ divider_variant }}" role="presentation"></div>

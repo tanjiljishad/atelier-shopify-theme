@@ -1,0 +1,15 @@
+{%- comment -%}
+  Standard dropdown panel (spec §5.1) — a single-column link list for shallow
+  submenus, or any submenu when the mega menu is disabled. `data-nav-panel` is
+  the shared marker assets/mega-menu.js uses to enhance both this and the mega
+  menu panel identically; the two only differ visually (see theme.css).
+
+  Accepts: link (the top-level nav link owning this submenu), index (unique id suffix).
+{%- endcomment -%}
+<div class="dropdown-menu" id="NavPanel-{{ index }}" data-nav-panel hidden>
+  <ul class="dropdown-menu__list list-unstyled">
+    {%- for child in link.links -%}
+      <li><a href="{{ child.url }}" class="dropdown-menu__link">{{ child.title }}</a></li>
+    {%- endfor -%}
+  </ul>
+</div>

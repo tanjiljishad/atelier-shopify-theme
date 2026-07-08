@@ -1,0 +1,27 @@
+{%- comment -%}
+  Toggle switch (spec §5.3) — dark mode, gift wrap, filter toggles. Built on a real
+  checkbox with role="switch" so assistive tech announces "on/off" rather than
+  "checked/unchecked", while keeping full native keyboard support for free.
+
+  Accepts:
+  - id (required), name (required), label (required)
+  - checked (bool)
+  - label_hidden (bool): visually hides the label (still read by screen readers) —
+    for contexts where the switch sits next to its own visible text already.
+{%- endcomment -%}
+<label class="switch-field" for="{{ id }}">
+  <span class="switch-field__label{% if label_hidden %} visually-hidden{% endif %}">{{ label }}</span>
+  <span class="switch-field__control">
+    <input
+      class="switch-field__input"
+      type="checkbox"
+      role="switch"
+      id="{{ id }}"
+      name="{{ name }}"
+      {% if checked %}checked{% endif %}
+    >
+    <span class="switch-field__track" aria-hidden="true">
+      <span class="switch-field__knob"></span>
+    </span>
+  </span>
+</label>

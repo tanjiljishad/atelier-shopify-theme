@@ -1,0 +1,101 @@
+<!doctype html>
+{%- liquid
+  assign color_mode_attr = 'light'
+  if settings.color_scheme_mode == 'dark'
+    assign color_mode_attr = 'dark'
+  elsif settings.color_scheme_mode == 'system'
+    assign color_mode_attr = 'system'
+  endif
+
+  assign html_classes = 'no-js'
+  if settings.buttons_uppercase
+    assign html_classes = html_classes | append: ' buttons-uppercase'
+  endif
+  if settings.button_shadow
+    assign html_classes = html_classes | append: ' button-shadow'
+  endif
+-%}
+<html class="{{ html_classes }}" lang="{{ request.locale.iso_code }}" data-color-mode="{{ color_mode_attr }}">
+  <head>
+    {%- if settings.color_scheme_mode == 'user' -%}
+      <script>
+        // Blocking, inline, and first in <head> on purpose: resolves the visitor's
+        // remembered (or system) preference before first paint so there is no
+        // light-to-dark flash. Only relevant when color_scheme_mode is "user" —
+        // the other three modes are already fully resolved server-side above.
+        (function () {
+          try {
+            var stored = localStorage.getItem('atelier:color-mode');
+            var mode = stored
+              ? JSON.parse(stored)
+              : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+            document.documentElement.setAttribute('data-color-mode', mode);
+          } catch (error) {
+            /* localStorage unavailable (private mode, blocked cookies, etc.);
+               keep the server-rendered "light" default. */
+          }
+        })();
+      </script>
+    {%- endif -%}
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    <title>
+      {{ page_title }}
+      {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
+      {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
+      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+    </title>
+
+    {%- if page_description -%}
+      <meta name="description" content="{{ page_description | escape }}">
+    {%- endif -%}
+
+    {{ content_for_header }}
+
+    {%- render 'theme-fonts' -%}
+    {%- render 'theme-tokens' -%}
+
+    {{ 'theme.css' | asset_url | stylesheet_tag }}
+
+    {%- if settings.custom_css != blank -%}
+      <style>
+        {{ settings.custom_css }}
+      </style>
+    {%- endif -%}
+
+    <script>
+      window.Atelier = window.Atelier || {};
+      window.Atelier.settings = {
+        animationsEnabled: {{ settings.animations_enabled | json }},
+        performanceMode: {{ settings.performance_mode | json }},
+        colorSchemeMode: {{ settings.color_scheme_mode | json }}
+      };
+    </script>
+    <script src="{{ 'theme.js' | asset_url }}" type="module"></script>
+
+    {%- if settings.custom_head_code != blank -%}
+      {{ settings.custom_head_code }}
+    {%- endif -%}
+  </head>
+
+  <body>
+    {%- render 'icon-sprite' -%}
+
+    <a class="skip-link" href="#MainContent">{{ 'accessibility.skip_to_text' | t }}</a>
+
+    <div id="AtelierAnnouncer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+    {% sections 'header-group' %}
+
+    <main id="MainContent" class="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+  </body>
+</html>

@@ -1,0 +1,375 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Atelier",
+    "theme_version": "0.1.0",
+    "theme_author": "Atelier",
+    "theme_documentation_url": "https://example.com/atelier/docs",
+    "theme_support_email": "support@example.com"
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Five color schemes are available to every section and block. Scheme 1 is the default light palette; Scheme 2 is the dark “Gallery at Night” palette. Schemes 3–5 start as copies of Scheme 1 for merchants to customize."
+      },
+      {
+        "type": "select",
+        "id": "color_scheme_mode",
+        "label": "Dark mode behavior",
+        "options": [
+          { "value": "light", "label": "Always light (Scheme 1)" },
+          { "value": "dark", "label": "Always dark (Scheme 2)" },
+          { "value": "user", "label": "Visitor toggle (remembers choice)" },
+          { "value": "system", "label": "Follow visitor's system setting" }
+        ],
+        "default": "user",
+        "info": "Controls the site-wide base palette. Individual sections can still be assigned any of the 5 schemes below regardless of this setting."
+      },
+      {
+        "type": "color_scheme_group",
+        "id": "color_schemes",
+        "definition": [
+          {
+            "type": "color",
+            "id": "background",
+            "label": "Background",
+            "default": "#FAF9F7"
+          },
+          {
+            "type": "color",
+            "id": "surface",
+            "label": "Surface (drawers, modals, popovers)",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "color",
+            "id": "card",
+            "label": "Card / recessed tint",
+            "default": "#F3F1EC"
+          },
+          {
+            "type": "color",
+            "id": "border",
+            "label": "Border / hairline",
+            "default": "#E7E3DC"
+          },
+          {
+            "type": "color",
+            "id": "text",
+            "label": "Text — primary",
+            "default": "#1C1B18"
+          },
+          {
+            "type": "color",
+            "id": "text_secondary",
+            "label": "Text — secondary",
+            "default": "#57534A"
+          },
+          {
+            "type": "color",
+            "id": "muted",
+            "label": "Text — muted",
+            "default": "#8A857B"
+          },
+          {
+            "type": "color",
+            "id": "accent",
+            "label": "Accent (links, active states)",
+            "default": "#8A6D4B"
+          },
+          {
+            "type": "color",
+            "id": "accent_2",
+            "label": "Accent 2 (badges, in-stock cues)",
+            "default": "#5C6F5E"
+          },
+          {
+            "type": "color",
+            "id": "success",
+            "label": "Success",
+            "default": "#2E7D5B"
+          },
+          {
+            "type": "color",
+            "id": "warning",
+            "label": "Warning",
+            "default": "#A66A1F"
+          },
+          {
+            "type": "color",
+            "id": "error",
+            "label": "Error / sale",
+            "default": "#B3402E"
+          },
+          {
+            "type": "color",
+            "id": "info",
+            "label": "Info",
+            "default": "#3B6EA5"
+          },
+          {
+            "type": "color",
+            "id": "button",
+            "label": "Primary button fill",
+            "default": "#1C1B18"
+          },
+          {
+            "type": "color",
+            "id": "button_label",
+            "label": "Primary button label",
+            "default": "#FAF9F7"
+          },
+          {
+            "type": "color",
+            "id": "button_border",
+            "label": "Primary button border",
+            "default": "#1C1B18"
+          },
+          {
+            "type": "color",
+            "id": "secondary_button",
+            "label": "Secondary button fill",
+            "default": "#F3F1EC"
+          },
+          {
+            "type": "color",
+            "id": "secondary_button_label",
+            "label": "Secondary button label",
+            "default": "#1C1B18"
+          },
+          {
+            "type": "color",
+            "id": "secondary_button_border",
+            "label": "Secondary button border",
+            "default": "#E7E3DC"
+          }
+        ],
+        "role": {
+          "background": "background",
+          "text": "text",
+          "primary_button": "button",
+          "on_primary_button": "button_label",
+          "primary_button_border": "button_border",
+          "secondary_button": "secondary_button",
+          "on_secondary_button": "secondary_button_label",
+          "secondary_button_border": "secondary_button_border",
+          "links": "accent",
+          "icons": "text"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "use_custom_typography",
+        "label": "Use Atelier's signature typefaces",
+        "default": true,
+        "info": "Marcellus (display) + Instrument Sans (body), self-hosted for performance. Disable to pick fonts from Shopify's font library instead."
+      },
+      {
+        "type": "font_picker",
+        "id": "type_header_font",
+        "label": "Display font",
+        "default": "assistant_n4",
+        "visible_if": "{{ settings.use_custom_typography == false }}"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_body_font",
+        "label": "Body font",
+        "default": "assistant_n4",
+        "visible_if": "{{ settings.use_custom_typography == false }}"
+      },
+      {
+        "type": "range",
+        "id": "base_font_size",
+        "label": "Base body size",
+        "min": 14,
+        "max": 17,
+        "step": 1,
+        "unit": "px",
+        "default": 15
+      },
+      {
+        "type": "range",
+        "id": "type_scale",
+        "label": "Heading scale",
+        "min": 90,
+        "max": 115,
+        "step": 5,
+        "unit": "%",
+        "default": 100,
+        "info": "Scales H1–H4 together; the ratios between styles stay fixed."
+      },
+      {
+        "type": "range",
+        "id": "heading_letter_spacing",
+        "label": "Display heading tracking",
+        "min": -1,
+        "max": 4,
+        "step": 1,
+        "default": 1,
+        "info": "In hundredths of an em — 1 = 0.01em, the spec default."
+      },
+      {
+        "type": "checkbox",
+        "id": "buttons_uppercase",
+        "label": "Uppercase button labels",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Layout",
+    "settings": [
+      {
+        "type": "range",
+        "id": "container_width_wide",
+        "label": "Wide container max-width",
+        "min": 1200,
+        "max": 1600,
+        "step": 20,
+        "unit": "px",
+        "default": 1360
+      },
+      {
+        "type": "range",
+        "id": "container_width_content",
+        "label": "Content container max-width",
+        "min": 1000,
+        "max": 1400,
+        "step": 20,
+        "unit": "px",
+        "default": 1200
+      },
+      {
+        "type": "range",
+        "id": "section_spacing_scale",
+        "label": "Section spacing scale",
+        "min": 75,
+        "max": 125,
+        "step": 5,
+        "unit": "%",
+        "default": 100
+      },
+      {
+        "type": "range",
+        "id": "grid_gap",
+        "label": "Grid gap",
+        "min": 12,
+        "max": 32,
+        "step": 2,
+        "unit": "px",
+        "default": 24
+      }
+    ]
+  },
+  {
+    "name": "Corners",
+    "settings": [
+      {
+        "type": "range",
+        "id": "radius_buttons",
+        "label": "Buttons & inputs radius",
+        "min": 0,
+        "max": 999,
+        "step": 1,
+        "unit": "px",
+        "default": 2
+      },
+      {
+        "type": "range",
+        "id": "radius_cards",
+        "label": "Cards radius",
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "unit": "px",
+        "default": 4
+      },
+      {
+        "type": "range",
+        "id": "radius_inputs",
+        "label": "Inputs radius",
+        "min": 0,
+        "max": 999,
+        "step": 1,
+        "unit": "px",
+        "default": 2
+      },
+      {
+        "type": "range",
+        "id": "radius_images",
+        "label": "Images radius",
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "unit": "px",
+        "default": 4
+      }
+    ]
+  },
+  {
+    "name": "Buttons",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "button_shadow",
+        "label": "Shadow on primary & secondary buttons",
+        "default": false,
+        "info": "Adds a soft resting shadow. Outline, ghost, and text buttons never carry a shadow — flat is part of what makes them read as lower-emphasis."
+      }
+    ]
+  },
+  {
+    "name": "Animations",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "animations_enabled",
+        "label": "Enable motion",
+        "default": true,
+        "info": "Master switch for scroll reveals, hover transitions, and editorial motion (Ken-Burns, parallax). Visitors with reduced-motion enabled always see instant, minimal motion regardless of this setting."
+      },
+      {
+        "type": "checkbox",
+        "id": "performance_mode",
+        "label": "Performance mode",
+        "default": false,
+        "info": "Disables parallax, Ken-Burns, hover-crossfade, and shimmer effects globally to prioritize speed on lower-powered devices."
+      }
+    ]
+  },
+  {
+    "name": "Advanced",
+    "settings": [
+      {
+        "type": "select",
+        "id": "image_loading_strategy",
+        "label": "Image loading strategy",
+        "options": [
+          { "value": "eager_first", "label": "Eager first section, lazy rest (recommended)" },
+          { "value": "all_lazy", "label": "Lazy-load all images" }
+        ],
+        "default": "eager_first"
+      },
+      {
+        "type": "textarea",
+        "id": "custom_css",
+        "label": "Custom CSS",
+        "info": "Wrapped automatically in a <style> tag and loaded after theme.css."
+      },
+      {
+        "type": "textarea",
+        "id": "custom_head_code",
+        "label": "Custom <head> code",
+        "info": "Inserted as-is before the closing </head> tag. For tracking pixels, verification tags, etc."
+      }
+    ]
+  }
+]

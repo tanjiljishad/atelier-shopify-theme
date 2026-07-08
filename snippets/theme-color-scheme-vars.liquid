@@ -1,0 +1,27 @@
+{%- comment -%}
+  Outputs the --color-* custom property declarations (no selector wrapper) for one
+  color scheme's settings. Accepts:
+  - scheme_settings: the `scheme.settings` object from a settings.color_schemes entry.
+
+  Kept as its own snippet so the same property list is never hand-duplicated between
+  the per-scheme utility classes, the :root default, and the dark-mode override block.
+{%- endcomment -%}
+--color-background: {{ scheme_settings.background }};
+  --color-surface: {{ scheme_settings.surface }};
+  --color-card: {{ scheme_settings.card }};
+  --color-border: {{ scheme_settings.border }};
+  --color-text: {{ scheme_settings.text }};
+  --color-text-secondary: {{ scheme_settings.text_secondary }};
+  --color-muted: {{ scheme_settings.muted }};
+  --color-accent: {{ scheme_settings.accent }};
+  --color-accent-2: {{ scheme_settings.accent_2 }};
+  --color-success: {{ scheme_settings.success }};
+  --color-warning: {{ scheme_settings.warning }};
+  --color-error: {{ scheme_settings.error }};
+  --color-info: {{ scheme_settings.info }};
+  --color-button: {{ scheme_settings.button }};
+  --color-button-label: {{ scheme_settings.button_label }};
+  --color-button-border: {{ scheme_settings.button_border }};
+  --color-secondary-button: {{ scheme_settings.secondary_button }};
+  --color-secondary-button-label: {{ scheme_settings.secondary_button_label }};
+  --color-secondary-button-border: {{ scheme_settings.secondary_button_border }};

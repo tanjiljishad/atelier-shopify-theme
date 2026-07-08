@@ -1,0 +1,84 @@
+{%- comment -%}
+  Inline, hidden SVG sprite — rendered once in layout/theme.liquid, right after <body>
+  opens. Every icon in the theme is referenced elsewhere via snippets/icon.liquid,
+  which points a <use> at one of these <symbol> ids. Inlining (rather than loading a
+  separate icons.svg asset and referencing it cross-file) avoids the <use>
+  cross-origin/caching quirks older Safari has with external SVG sprites, at the cost
+  of a few hundred bytes duplicated in the initial HTML — a good trade for a sprite
+  this small (spec §12: "icons as inline SVG sprite, no icon font").
+
+  Icons are sourced from Lucide (ISC license) and kept at their 1.5px-stroke
+  "Lucide-style discipline" (spec §5.5) rather than Lucide's own 2px default.
+  Only icons actually consumed by a shipped component belong here — add new
+  <symbol> entries only when a real caller needs them, not speculatively.
+
+  Current consumers (Milestone 2):
+    icon-plus         — accordion toggle (rotates 45° into a close glyph), quantity increase,
+                        and reused rotated 45° wherever a plain "×" dismiss/close glyph is
+                        needed (spec has no separate close icon — one glyph, two jobs)
+    icon-minus        — quantity decrease
+    icon-chevron-down — custom select chevron; reused rotated ±90° for chevron-left/right
+                        (mobile nav submenu disclosure / back button) instead of two more symbols
+    icon-check        — checkbox checked glyph, field success state
+    icon-circle-alert — field error state
+
+  Added in Milestone 3 (header/nav):
+    icon-search, icon-user, icon-shopping-bag, icon-heart, icon-git-compare, icon-menu
+{%- endcomment -%}
+<svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden;">
+  <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12h14" />
+    <path d="M12 5v14" />
+  </symbol>
+
+  <symbol id="icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12h14" />
+  </symbol>
+
+  <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m6 9 6 6 6-6" />
+  </symbol>
+
+  <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 6 9 17l-5-5" />
+  </symbol>
+
+  <symbol id="icon-circle-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" x2="12" y1="8" y2="12" />
+    <line x1="12" x2="12.01" y1="16" y2="16" />
+  </symbol>
+
+  <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m21 21-4.34-4.34" />
+    <circle cx="11" cy="11" r="8" />
+  </symbol>
+
+  <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </symbol>
+
+  <symbol id="icon-shopping-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 10a4 4 0 0 1-8 0" />
+    <path d="M3.103 6.034h17.794" />
+    <path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z" />
+  </symbol>
+
+  <symbol id="icon-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
+  </symbol>
+
+  <symbol id="icon-git-compare" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="18" r="3" />
+    <circle cx="6" cy="6" r="3" />
+    <path d="M13 6h3a2 2 0 0 1 2 2v7" />
+    <path d="M11 18H8a2 2 0 0 1-2-2V9" />
+  </symbol>
+
+  <symbol id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 5h16" />
+    <path d="M4 12h16" />
+    <path d="M4 19h16" />
+  </symbol>
+</svg>

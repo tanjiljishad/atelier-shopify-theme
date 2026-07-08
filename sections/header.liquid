@@ -1,0 +1,219 @@
+{%- comment -%}
+  Global header (spec §5.1). <site-header> (assets/header.js) owns sticky/
+  shrink/hide-reveal-on-scroll and the transparent-to-solid crossfade;
+  everything else (nav, drawers) is composed from its own snippet + custom
+  element, none of it duplicated here.
+
+  Wishlist/compare counts can't be known server-side (they live in
+  localStorage — see assets/theme-storage.js), so they render as 0/hidden and
+  assets/header.js corrects them on load from the same storage adapter a
+  later milestone's add-to-wishlist/compare actions will write to. That
+  milestone only needs to write the storage key; this header already knows
+  how to reflect it.
+{%- endcomment -%}
+{%- liquid
+  assign is_transparent = false
+  if section.settings.enable_transparent_header and template == 'index'
+    assign is_transparent = true
+  endif
+
+  if customer
+    assign account_href = routes.account_url
+  else
+    assign account_href = routes.login_url
+  endif
+
+  assign logo_width_mobile = section.settings.logo_width | times: 0.7 | round
+  assign logo_sizes = '(min-width: 750px) ' | append: section.settings.logo_width | append: 'px, ' | append: logo_width_mobile | append: 'px'
+
+  assign label_search = 'general.search' | t
+  assign label_account = 'general.account' | t
+  assign label_wishlist = 'general.wishlist' | t
+  assign label_compare = 'general.compare' | t
+  assign label_cart = 'general.cart' | t
+
+  assign header_classes = 'site-header color-scheme-' | append: section.settings.color_scheme
+  if is_transparent
+    assign header_classes = header_classes | append: ' site-header--transparent'
+  endif
+  if section.settings.header_border == 'border'
+    assign header_classes = header_classes | append: ' site-header--border'
+  elsif section.settings.header_border == 'shadow'
+    assign header_classes = header_classes | append: ' site-header--shadow'
+  endif
+-%}
+<site-header
+  class="{{ header_classes }}"
+  data-sticky="{{ section.settings.sticky_header }}"
+  style="--header-height-desktop: {{ section.settings.header_height_desktop }}px; --header-height-mobile: {{ section.settings.header_height_mobile }}px; --logo-width: {{ section.settings.logo_width }}px;"
+>
+  <div class="site-header__inner container container--wide site-header__inner--logo-{{ section.settings.logo_position }}">
+    <div class="site-header__start">
+      <button type="button" class="btn-icon site-header__menu-toggle" data-drawer-open="MobileNav" aria-label="{{ 'general.menu' | t }}">
+        {% render 'icon', name: 'menu', size: 24 %}
+      </button>
+
+      {% render 'header-nav', section: section %}
+    </div>
+
+    <a class="site-header__logo" href="{{ routes.root_url }}">
+      {%- if section.settings.logo != blank -%}
+        {% render 'responsive-image', image: section.settings.logo, sizes: logo_sizes, class: 'site-header__logo-image', priority: true %}
+      {%- else -%}
+        <span class="site-header__logo-text">{{ shop.name }}</span>
+      {%- endif -%}
+    </a>
+
+    <div class="site-header__actions">
+      {% render 'header-action', icon: 'search', label: label_search, drawer_target: 'SearchDrawer' %}
+      {% render 'header-action', icon: 'user', label: label_account, href: account_href %}
+      {% render 'header-action', icon: 'heart', label: label_wishlist, href: blank, count: 0, id: 'WishlistAction' %}
+      {% render 'header-action', icon: 'git-compare', label: label_compare, href: blank, count: 0, id: 'CompareAction' %}
+      {% render 'header-action', icon: 'shopping-bag', label: label_cart, href: routes.cart_url, count: cart.item_count, id: 'CartLink' %}
+    </div>
+  </div>
+</site-header>
+
+{% render 'mobile-nav', section: section %}
+{% render 'search-drawer' %}
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "label": "Logo width",
+      "min": 80,
+      "max": 240,
+      "step": 10,
+      "unit": "px",
+      "default": 140
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "label": "Logo position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "sticky_header",
+      "label": "Sticky header",
+      "options": [
+        { "value": "always", "label": "Always visible" },
+        { "value": "on-scroll-up", "label": "Reveal on scroll up only" },
+        { "value": "none", "label": "Not sticky" }
+      ],
+      "default": "always"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_transparent_header",
+      "label": "Transparent header on home page",
+      "default": false,
+      "info": "Applies only to the home page, over its first section. Crossfades to the solid style once the visitor scrolls."
+    },
+    {
+      "type": "select",
+      "id": "header_border",
+      "label": "Border / shadow",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "border", "label": "Hairline border" },
+        { "value": "shadow", "label": "Shadow" }
+      ],
+      "default": "border"
+    },
+    {
+      "type": "range",
+      "id": "header_height_desktop",
+      "label": "Header height (desktop)",
+      "min": 56,
+      "max": 96,
+      "step": 2,
+      "unit": "px",
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "header_height_mobile",
+      "label": "Header height (mobile)",
+      "min": 48,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mega_menu",
+      "label": "Enable mega menu",
+      "default": true,
+      "info": "Menu items with sub-menus that themselves have children get a full-width panel. Turned off, every sub-menu becomes a simple dropdown."
+    },
+    {
+      "type": "select",
+      "id": "mobile_menu_style",
+      "label": "Mobile menu style",
+      "options": [
+        { "value": "drawer", "label": "Side drawer" },
+        { "value": "fullscreen", "label": "Full screen" }
+      ],
+      "default": "drawer"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "mega_menu_promo",
+      "name": "Mega menu promo",
+      "settings": [
+        {
+          "type": "text",
+          "id": "menu_item_title",
+          "label": "Menu item",
+          "info": "Must exactly match a top-level menu item's title — Shopify's navigation editor has no way to attach an image to a menu item directly, so matching by title is how this promo gets placed in the right mega menu column."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 10
+}
+{% endschema %}

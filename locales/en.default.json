@@ -1,0 +1,44 @@
+{
+  "accessibility": {
+    "skip_to_text": "Skip to content",
+    "dismiss_announcement": "Dismiss announcement",
+    "main_menu": "Main menu",
+    "mobile_menu": "Menu",
+    "dark_mode_toggle": "Dark mode"
+  },
+  "general": {
+    "search": "Search",
+    "search_placeholder": "Search products, collections, pages...",
+    "search_recent": "Recent searches",
+    "search_no_results": "No results found",
+    "search_for": "Search for \"{{ terms }}\"",
+    "search_products": "Products",
+    "search_collections": "Collections",
+    "search_pages": "Pages",
+    "search_articles": "Articles",
+    "cart": "Cart",
+    "account": "Account",
+    "wishlist": "Wishlist",
+    "compare": "Compare",
+    "menu": "Menu",
+    "close": "Close",
+    "view_all": "View all",
+    "quantity": {
+      "label": "Quantity",
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity"
+    }
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Add to cart",
+      "sold_out": "Sold out",
+      "unavailable": "Unavailable",
+      "quantity": "Quantity",
+      "price": {
+        "sale_price": "Sale price",
+        "regular_price": "Regular price"
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{%- comment -%}
+  Checkbox / radio (spec §5.3). One snippet for both since they differ only in
+  `type` and the visual glyph (checkmark vs. dot) — same label-wrapping structure,
+  same 44px clickable row.
+
+  Wrapping the native input WITH the visual box AND the text inside one <label>
+  is deliberate: it makes the entire row clickable (spec: "Labels are full
+  clickable rows in filter contexts") without any JS, and the native input stays
+  in the accessibility tree and keyboard-operable — the visual box is a sibling
+  <span aria-hidden="true">, never a replacement for the real control.
+
+  Accepts:
+  - id (required), name (required), label (required)
+  - kind: 'checkbox' (default) | 'radio'
+  - value: input value (relevant for radio groups / checkbox arrays)
+  - checked (bool), required (bool)
+{%- endcomment -%}
+{%- liquid
+  assign field_kind = kind | default: 'checkbox'
+-%}
+<label class="checkbox-field checkbox-field--{{ field_kind }}" for="{{ id }}">
+  <input
+    class="checkbox-field__input"
+    type="{{ field_kind }}"
+    id="{{ id }}"
+    name="{{ name }}"
+    {% if value %}value="{{ value }}"{% endif %}
+    {% if checked %}checked{% endif %}
+    {% if required %}required aria-required="true"{% endif %}
+  >
+  <span class="checkbox-field__box" aria-hidden="true">
+    {%- if field_kind != 'radio' -%}
+      {% render 'icon', name: 'check', size: 14, class: 'checkbox-field__check' %}
+    {%- endif -%}
+  </span>
+  <span class="checkbox-field__label">{{ label }}</span>
+</label>

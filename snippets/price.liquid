@@ -1,0 +1,39 @@
+{%- comment -%}
+  Price component (spec §3, §5.2). Renders a regular or sale price with tabular
+  numerals so totals never jitter as quantities/variants change.
+
+  Accepts either:
+  - product: a product drop (uses product.price / product.compare_at_price), or
+  - price / compare_at_price: raw cents integers, for contexts with no product
+    object (cart line items, quick-view, etc. in later milestones).
+  - size: 'card' (default) or 'pdp' — maps to --text-price-card / --text-price-pdp.
+
+  Sale state is never color-only: a visually-hidden label precedes each value so
+  screen reader users get "Sale price $X / Regular price $Y" rather than just two
+  unlabeled numbers (spec §12 "state never color-only").
+{%- endcomment -%}
+{%- liquid
+  assign price_size = size | default: 'card'
+  if product
+    assign current_price = product.price
+    assign compare_price = product.compare_at_price
+  else
+    assign current_price = price
+    assign compare_price = compare_at_price
+  endif
+  assign on_sale = false
+  if compare_price > current_price
+    assign on_sale = true
+  endif
+-%}
+<div class="price price--{{ price_size }}{% if on_sale %} price--sale{% endif %}">
+  {%- if on_sale -%}
+    <span class="visually-hidden">{{ 'products.product.price.sale_price' | t }}</span>
+    <span class="price__sale">{{ current_price | money }}</span>
+    <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+    <s class="price__compare">{{ compare_price | money }}</s>
+  {%- else -%}
+    <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+    <span class="price__regular">{{ current_price | money }}</span>
+  {%- endif -%}
+</div>

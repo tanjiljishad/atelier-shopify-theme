@@ -1,0 +1,83 @@
+{%- comment -%}
+  Renders predictive search results. Never appears in a template's own JSON —
+  this section is only ever fetched by assets/predictive-search.js via the
+  Section Rendering API (`{{ routes.predictive_search_url }}?q=...&section_id=
+  predictive-search`), which is what populates the `predictive_search` object
+  below. Reuses price/responsive-image/icon so results are formatted
+  identically to every other product reference in the theme.
+{%- endcomment -%}
+{%- if predictive_search.performed -%}
+  {%- assign has_results = false -%}
+  {%- if predictive_search.resources.products.size > 0
+    or predictive_search.resources.collections.size > 0
+    or predictive_search.resources.pages.size > 0
+    or predictive_search.resources.articles.size > 0
+  -%}
+    {%- assign has_results = true -%}
+  {%- endif -%}
+
+  {%- if has_results -%}
+    <a class="predictive-search__view-all link" href="{{ routes.search_url }}?q={{ predictive_search.terms | url_encode }}">
+      {{ 'general.search_for' | t: terms: predictive_search.terms }} →
+    </a>
+
+    {%- if predictive_search.resources.products.size > 0 -%}
+      <div class="predictive-search__group">
+        <p class="kicker">{{ 'general.search_products' | t }}</p>
+        <ul class="predictive-search__list list-unstyled">
+          {%- for product in predictive_search.resources.products -%}
+            <li>
+              <a class="predictive-search__product" href="{{ product.url }}">
+                {% render 'responsive-image', image: product.featured_image, aspect_ratio: '1/1', sizes: '64px', class: 'predictive-search__product-image' %}
+                <span class="predictive-search__product-info">
+                  <span class="predictive-search__product-title">{{ product.title }}</span>
+                  {% render 'price', product: product, size: 'card' %}
+                </span>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+    {%- if predictive_search.resources.collections.size > 0 -%}
+      <div class="predictive-search__group">
+        <p class="kicker">{{ 'general.search_collections' | t }}</p>
+        <ul class="predictive-search__list list-unstyled">
+          {%- for collection in predictive_search.resources.collections -%}
+            <li><a class="predictive-search__link" href="{{ collection.url }}">{{ collection.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+    {%- if predictive_search.resources.pages.size > 0 -%}
+      <div class="predictive-search__group">
+        <p class="kicker">{{ 'general.search_pages' | t }}</p>
+        <ul class="predictive-search__list list-unstyled">
+          {%- for page in predictive_search.resources.pages -%}
+            <li><a class="predictive-search__link" href="{{ page.url }}">{{ page.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+    {%- if predictive_search.resources.articles.size > 0 -%}
+      <div class="predictive-search__group">
+        <p class="kicker">{{ 'general.search_articles' | t }}</p>
+        <ul class="predictive-search__list list-unstyled">
+          {%- for article in predictive_search.resources.articles -%}
+            <li><a class="predictive-search__link" href="{{ article.url }}">{{ article.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Predictive search",
+  "settings": []
+}
+{% endschema %}

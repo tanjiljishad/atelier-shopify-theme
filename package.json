@@ -1,0 +1,17 @@
+{
+  "name": "ateller-shopify-theme",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "shopify": "shopify",
+    "login": "shopify auth login",
+    "dev": "shopify theme dev",
+    "check": "shopify theme check",
+    "pull": "shopify theme pull",
+    "push": "shopify theme push",
+    "publish": "shopify theme publish"
+  },
+  "devDependencies": {
+    "@shopify/cli": "latest"
+  }
+}

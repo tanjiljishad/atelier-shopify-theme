@@ -35,10 +35,31 @@
       "sold_out": "Sold out",
       "unavailable": "Unavailable",
       "quantity": "Quantity",
+      "quick_add": "Add",
+      "quick_view": "Quick view",
+      "choose_options": "Choose options",
+      "added": "Added",
+      "add_error": "Couldn't add",
+      "wishlist_add": "Add to wishlist",
+      "compare_add": "Add to compare",
+      "new": "New",
+      "preorder": "Preorder",
+      "sale_percent": "Sale −{{ percent }}%",
+      "low_stock": "Only {{ count }} left",
+      "rating": "Rated {{ rating }} out of 5 stars, based on {{ count }} reviews",
       "price": {
         "sale_price": "Sale price",
         "regular_price": "Regular price"
+      },
+      "inventory": {
+        "in_stock": "In stock",
+        "out_of_stock": "Out of stock",
+        "backorder": "Available on backorder",
+        "low_stock": "Only {{ count }} left"
       }
     }
+  },
+  "collections": {
+    "product_count": "products"
   }
 }

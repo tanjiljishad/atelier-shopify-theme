@@ -1,0 +1,183 @@
+{%- comment -%}
+  Variant picker (spec §5.3, §7). Renders the accessible markup contract for
+  a future <variant-picker> custom element to hook into for live switching
+  (updating price/media/URL on selection) — that JS is explicitly deferred to
+  the product page milestone, since it needs a product JSON blob and page
+  regions (gallery, price, buy box) that don't exist until then. Everything
+  rendered here already works correctly with zero JS: each option is a real
+  native radio group (or <select> for long lists), so keyboard navigation
+  (Tab, Arrow keys within a group) and screen reader semantics come free from
+  the browser, matching the same "native control + styled sibling" pattern as
+  checkbox-field/switch-field (spec §5: never disable an unavailable option —
+  "still clickable → Notify me" — so unavailable values stay real, enabled
+  radios, just visually struck through via a class, never `disabled`).
+
+  Display style per option is chosen automatically since there's no per-item
+  metadata to hang a merchant setting on:
+  - option name contains "color"/"colour"      -> swatches
+  - more than 6 values                          -> dropdown (native <select>)
+  - otherwise                                   -> pill buttons
+
+  Swatch color-name matching covers ~20 common names as a pragmatic default;
+  unmatched names fall back to a text label on a neutral chip rather than
+  guessing wrong, and any variant with its own featured_image (fabric/finish
+  photography) uses that image instead of a flat color.
+
+  Accepts: product (required).
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+-%}
+<div class="variant-picker" data-variant-picker data-product-id="{{ product.id }}">
+  {%- for option in product.options_with_values -%}
+    {%- liquid
+      assign option_position = option.position
+      assign selected_value = current_variant.options[forloop.index0]
+      assign option_name_lower = option.name | downcase
+      assign is_color = false
+      if option_name_lower contains 'color' or option_name_lower contains 'colour'
+        assign is_color = true
+      endif
+      assign display_style = 'pills'
+      if is_color
+        assign display_style = 'swatches'
+      elsif option.values.size > 6
+        assign display_style = 'dropdown'
+      endif
+    -%}
+    <fieldset class="variant-picker__option">
+      <legend class="variant-picker__label field__label">
+        {{ option.name }} — <span data-selected-value>{{ selected_value }}</span>
+      </legend>
+
+      {%- if display_style == 'dropdown' -%}
+        <div class="field__control">
+          <select
+            class="field__input field__input--select variant-picker__select"
+            name="options[{{ option.name | escape }}]"
+            data-option-position="{{ option_position }}"
+            aria-label="{{ option.name | escape }}"
+          >
+            {%- for value in option.values -%}
+              <option value="{{ value | escape }}"{% if value == selected_value %} selected{% endif %}>{{ value }}</option>
+            {%- endfor -%}
+          </select>
+          {% render 'icon', name: 'chevron-down', size: 16, class: 'field__select-icon' %}
+        </div>
+      {%- else -%}
+        <div class="variant-picker__values variant-picker__values--{{ display_style }}">
+          {%- for value in option.values -%}
+            {%- liquid
+              assign value_available = false
+              for variant in product.variants
+                assign matches = true
+                case option_position
+                  when 1
+                    unless variant.option1 == value
+                      assign matches = false
+                    endunless
+                  when 2
+                    unless variant.option2 == value
+                      assign matches = false
+                    endunless
+                  when 3
+                    unless variant.option3 == value
+                      assign matches = false
+                    endunless
+                endcase
+                if option_position != 1 and variant.option1 != current_variant.option1
+                  assign matches = false
+                endif
+                if option_position != 2 and variant.option2 != current_variant.option2
+                  assign matches = false
+                endif
+                if option_position != 3 and variant.option3 != current_variant.option3
+                  assign matches = false
+                endif
+                if matches and variant.available
+                  assign value_available = true
+                endif
+              endfor
+
+              assign swatch_image = blank
+              for variant in product.variants
+                case option_position
+                  when 1
+                    if variant.option1 == value and variant.featured_image
+                      assign swatch_image = variant.featured_image
+                    endif
+                  when 2
+                    if variant.option2 == value and variant.featured_image
+                      assign swatch_image = variant.featured_image
+                    endif
+                  when 3
+                    if variant.option3 == value and variant.featured_image
+                      assign swatch_image = variant.featured_image
+                    endif
+                endcase
+              endfor
+            -%}
+            {%- if display_style == 'swatches' -%}
+              <label class="variant-swatch{% unless value_available %} variant-swatch--unavailable{% endunless %}">
+                <input
+                  type="radio"
+                  class="variant-swatch__input visually-hidden"
+                  name="option-{{ option_position }}-{{ product.id }}"
+                  value="{{ value | escape }}"
+                  data-option-position="{{ option_position }}"
+                  data-option-value="{{ value | escape }}"
+                  {% if value == selected_value %}checked{% endif %}
+                >
+                <span
+                  class="variant-swatch__box"
+                  {%- if swatch_image %}
+                    style="background-image: url('{{ swatch_image | image_url: width: 64 }}');"
+                  {%- else -%}
+                    {%- assign swatch_color = '' -%}
+                    {%- case value | downcase -%}
+                      {%- when 'black' -%}{%- assign swatch_color = '#1c1b18' -%}
+                      {%- when 'white' -%}{%- assign swatch_color = '#ffffff' -%}
+                      {%- when 'ivory' or 'cream' or 'off-white' -%}{%- assign swatch_color = '#f3f1ec' -%}
+                      {%- when 'grey' or 'gray' -%}{%- assign swatch_color = '#8a857b' -%}
+                      {%- when 'navy' -%}{%- assign swatch_color = '#1f2b3a' -%}
+                      {%- when 'blue' -%}{%- assign swatch_color = '#3b6ea5' -%}
+                      {%- when 'red' -%}{%- assign swatch_color = '#b3402e' -%}
+                      {%- when 'pink' -%}{%- assign swatch_color = '#d99a9a' -%}
+                      {%- when 'green' -%}{%- assign swatch_color = '#5c6f5e' -%}
+                      {%- when 'olive' -%}{%- assign swatch_color = '#6b6b47' -%}
+                      {%- when 'yellow' -%}{%- assign swatch_color = '#d9b94a' -%}
+                      {%- when 'gold' -%}{%- assign swatch_color = '#a68a4a' -%}
+                      {%- when 'silver' -%}{%- assign swatch_color = '#c4c2bd' -%}
+                      {%- when 'orange' -%}{%- assign swatch_color = '#c76b3f' -%}
+                      {%- when 'purple' -%}{%- assign swatch_color = '#6b5b8a' -%}
+                      {%- when 'brown' -%}{%- assign swatch_color = '#6b4a34' -%}
+                      {%- when 'tan' or 'beige' -%}{%- assign swatch_color = '#c9b18c' -%}
+                    {%- endcase -%}
+                    {%- if swatch_color != '' -%}
+                      style="background-color: {{ swatch_color }};"
+                    {%- endif -%}
+                  {%- endif -%}
+                  aria-hidden="true"
+                >{%- if swatch_image == blank and swatch_color == '' -%}{{ value | slice: 0, 2 }}{%- endif -%}</span>
+                <span class="visually-hidden">{{ value }}</span>
+              </label>
+            {%- else -%}
+              <label class="variant-pill{% unless value_available %} variant-pill--unavailable{% endunless %}">
+                <input
+                  type="radio"
+                  class="variant-pill__input visually-hidden"
+                  name="option-{{ option_position }}-{{ product.id }}"
+                  value="{{ value | escape }}"
+                  data-option-position="{{ option_position }}"
+                  data-option-value="{{ value | escape }}"
+                  {% if value == selected_value %}checked{% endif %}
+                >
+                <span class="variant-pill__box">{{ value }}</span>
+              </label>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </fieldset>
+  {%- endfor -%}
+</div>

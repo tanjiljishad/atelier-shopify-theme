@@ -73,7 +73,8 @@
       window.Atelier.settings = {
         animationsEnabled: {{ settings.animations_enabled | json }},
         performanceMode: {{ settings.performance_mode | json }},
-        colorSchemeMode: {{ settings.color_scheme_mode | json }}
+        colorSchemeMode: {{ settings.color_scheme_mode | json }},
+        moneyFormat: {{ shop.money_format | json }}
       };
     </script>
     <script src="{{ 'theme.js' | asset_url }}" type="module"></script>

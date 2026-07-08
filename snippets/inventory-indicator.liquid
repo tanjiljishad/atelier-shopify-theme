@@ -1,0 +1,65 @@
+{%- comment -%}
+  Inventory indicator (spec §7: "In stock — ships in 24h" success dot; low
+  stock = warning "Only 3 left" shown with restraint).
+
+  Accepts:
+  - product or variant (variant takes priority if both given — falls back to
+    product.selected_or_first_available_variant)
+  - style: 'text' (default, dot + message) | 'bar' (adds a small tonal meter)
+
+  Threshold is settings.inventory_low_stock_threshold — the same setting
+  snippets/product-labels.liquid reads for its own low-stock badge, so the
+  "is this low stock?" definition only lives in one place.
+{%- endcomment -%}
+{%- liquid
+  assign target_variant = variant | default: product.selected_or_first_available_variant
+  assign threshold = settings.inventory_low_stock_threshold
+  assign indicator_style = style | default: 'text'
+  assign tracked = false
+  if target_variant.inventory_management != blank
+    assign tracked = true
+  endif
+
+  assign inv_status = 'in-stock'
+  if tracked
+    if target_variant.inventory_quantity <= 0
+      if target_variant.inventory_policy == 'continue'
+        assign inv_status = 'backorder'
+      else
+        assign inv_status = 'out-of-stock'
+      endif
+    elsif target_variant.inventory_quantity <= threshold
+      assign inv_status = 'low-stock'
+    endif
+  endif
+
+  if target_variant.available == false and inv_status == 'in-stock'
+    assign inv_status = 'out-of-stock'
+  endif
+-%}
+<div class="inventory-indicator inventory-indicator--{{ inv_status }}">
+  <span class="inventory-indicator__dot" aria-hidden="true"></span>
+  <span class="inventory-indicator__message">
+    {%- case inv_status -%}
+      {%- when 'out-of-stock' -%}
+        {{ 'products.product.inventory.out_of_stock' | t }}
+      {%- when 'backorder' -%}
+        {{ 'products.product.inventory.backorder' | t }}
+      {%- when 'low-stock' -%}
+        {{ 'products.product.inventory.low_stock' | t: count: target_variant.inventory_quantity }}
+      {%- else -%}
+        {{ 'products.product.inventory.in_stock' | t }}
+    {%- endcase -%}
+  </span>
+  {%- if indicator_style == 'bar' and tracked and inv_status != 'out-of-stock' -%}
+    {%- liquid
+      assign fill_percent = 100
+      if inv_status == 'low-stock'
+        assign fill_percent = target_variant.inventory_quantity | times: 100 | divided_by: threshold
+      endif
+    -%}
+    <span class="inventory-indicator__bar" aria-hidden="true">
+      <span class="inventory-indicator__bar-fill" style="width: {{ fill_percent }}%;"></span>
+    </span>
+  {%- endif -%}
+</div>

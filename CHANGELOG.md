@@ -3,6 +3,95 @@
 All notable changes to the Atelier theme are documented here, one entry per
 build milestone. Dates reflect when the milestone was completed.
 
+## Milestone 4 — Commerce Components & Product Building Blocks
+
+**New components**
+Product card (primary/secondary hover-crossfade or zoom, responsive images,
+sold-out/sale/low-stock states, labels, rating placeholder, wishlist/compare
+hooks, quick view hook, quick add — the last two real and working, not just
+scaffolding), collection card (standard + overlay modes), variant picker
+(pills/swatches/dropdown auto-selected per option, sold-out-but-clickable
+values, full native keyboard support), product labels (sale/new/sold-out/
+preorder/low-stock/custom-metafield, priority-ordered), inventory indicator
+(in-stock/low-stock/out-of-stock/backorder, text or bar style), shared
+commerce utilities (`formatMoney`, `findMatchingVariant` — explicit forward
+architecture for the product-page milestone's live variant switching).
+
+**Files created**
+`snippets/collection-card.liquid`, `snippets/variant-picker.liquid`,
+`snippets/product-labels.liquid`, `snippets/inventory-indicator.liquid`,
+`assets/commerce-utils.js`, `assets/product-list-toggle.js`,
+`assets/wishlist.js`, `assets/compare.js`, `assets/quick-add.js`,
+`assets/quick-view.js`.
+
+**Files modified**
+`snippets/product-card.liquid` (full rebuild), `snippets/responsive-image.liquid`
+(+`wrap: false` bare-image mode, +focal point support), `snippets/icon-sprite.liquid`
+(+eye, +star), `config/settings_schema.json` + `settings_data.json` (+Product
+cards group: image ratio, secondary-image/hover-effect toggle, vendor/rating
+visibility, quick-add toggle, badge position, "new" badge duration, low-stock
+threshold), `layout/theme.liquid` (+`moneyFormat` in the settings bootstrap),
+`assets/theme.js` (lazy imports for the 4 new optional modules), `assets/theme.css`
+(+~650 lines: product card, collection card, variant picker, inventory
+indicator), `locales/en.default.json` (~20 new strings).
+
+**Architectural decisions**
+- Quick Add really adds to cart via Shopify's native `/cart/add.js` +
+  `/cart.js` AJAX endpoints — those are platform features available on every
+  store regardless of theme, so this didn't need to wait for a cart *drawer*
+  UI to be genuinely functional. It dispatches the same `cart:updated` event
+  `assets/header.js` has listened for since Milestone 3, so the header count
+  updates for real with zero changes on that side. What it deliberately
+  doesn't do: open a cart panel afterward (none exists yet) or handle multi-
+  variant selection (renders a "Choose options" link to the PDP instead).
+- Wishlist/compare are genuinely working toggles today (add/remove a product
+  id from a storage-adapter-backed list, live count in the header), just
+  with no listing *page* yet — `assets/product-list-toggle.js` is one shared
+  implementation both call rather than two near-identical files.
+- Variant picker renders real native `<input type="radio">` groups (visually
+  styled as pills/swatches) instead of custom ARIA widgets, so keyboard
+  arrow-key navigation within an option group is free from the browser —
+  same "native control + styled sibling" pattern as checkbox-field/switch-field
+  from Milestone 2. Unavailable values stay enabled radios (never `disabled`)
+  since spec requires them to stay clickable for a future "notify me" flow.
+- Mega menu vs. dropdown split, variant switching JS, and the quick-view
+  modal are all explicitly deferred — this milestone builds the markup
+  contracts (data attributes, event names) those future milestones read,
+  not the features themselves, per the stated scope.
+- New global "Product cards" settings group was added deliberately — product-
+  card is a snippet with no schema of its own, called from many different
+  sections, so any setting controlling it has to live somewhere global;
+  putting it in settings_schema.json (rather than duplicating an "image
+  ratio" setting into every section that will eventually call it) is the
+  option that doesn't duplicate. Collection-card's `mode`, by contrast, is a
+  render parameter, not a global setting — its presentation is expected to
+  vary per calling section rather than stay identical everywhere.
+- Skipped duplicate card radius/shadow settings — product cards already
+  inherit `--radius-card` from Milestone 1's Corners group; adding a second,
+  card-specific radius control would just be two settings fighting over the
+  same visual property.
+
+**Bug fixes (caught before shipping)**
+A `{%- comment -%}...{%- endcomment -%}` nested inside a `{% liquid %}` block
+in `product-card.liquid` — the `liquid` tag has its own line-based syntax
+that doesn't accept `{% %}`-delimited tags inside it; fixed by switching to
+its `#`-prefixed line-comment syntax. Two genuinely ambiguous filter chains
+in `product-labels.liquid` — `'text' | t: percent: x, tone: 'sale'` inside a
+`render` tag's argument list parses `tone` as a second argument to `t`, not
+to `render` (found via a real "unused variable" Theme Check warning, not a
+guess) — fixed by precomputing the translated string into its own variable
+first, same fix pattern as Milestone 3's `header.liquid` labels.
+
+**Known follow-ups for Milestone 5**
+`collection-card`, `variant-picker`, and `inventory-indicator` have no
+consumer yet (expected — collection/product page layouts are out of scope
+this milestone) so they're unverified in real page context, only in the
+static QA preview. Rating display only ever appears if a reviews app has
+already written to the `reviews.rating` / `reviews.rating_count` metafields
+— untested against a real app's actual field shape since none is installed.
+
+---
+
 ## Milestone 3 — Global Header & Navigation System
 
 **New components**

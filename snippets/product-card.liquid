@@ -1,14 +1,117 @@
-<article class="product-card">
-  <a class="product-card__media" href="{{ product.url }}">
-    {% if product.featured_media %}
-      {{ product.featured_media | image_url: width: 720 | image_tag: widths: '320, 520, 720', sizes: '(min-width: 900px) 25vw, 50vw' }}
-    {% else %}
-      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
-    {% endif %}
-  </a>
+{%- comment -%}
+  Product card — the standard reusable product surface used everywhere
+  (collection grids, featured collections, search, recommendations, recently
+  viewed, wishlist, compare — all later milestones, spec §5.2). Every piece
+  reuses an existing primitive: price.liquid, badge.liquid (via product-labels),
+  responsive-image.liquid, the icon sprite, and the .btn/quick-add-button
+  contracts from earlier milestones — this snippet only adds the layout and
+  the product-specific data around them.
+
+  Accepts:
+  - product (required)
+  - image_ratio: overrides settings.card_image_ratio for this one instance
+  - priority: passed through to the primary image (true for above-the-fold cards)
+
+  Wishlist/compare buttons render a safe aria-pressed="false" default and are
+  corrected on load by assets/wishlist.js / assets/compare.js reading the same
+  storage adapter the header's count bubbles already subscribe to (Milestone 3)
+  — toggling here updates the header with no changes needed on either side.
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign media_ratio = image_ratio | default: settings.card_image_ratio
+  assign card_image = current_variant.featured_image | default: product.featured_image
+  assign secondary_image = product.images[1]
+
+  assign show_secondary = settings.card_show_secondary_image
+  if secondary_image == blank
+    assign show_secondary = false
+  endif
+
+  assign hover_effect = settings.card_hover_effect
+  if hover_effect == 'crossfade' and show_secondary == false
+    assign hover_effect = 'zoom'
+  endif
+
+  assign card_classes = 'product-card'
+  if hover_effect != 'none'
+    assign card_classes = card_classes | append: ' product-card--hover-' | append: hover_effect
+  endif
+  unless product.available
+    assign card_classes = card_classes | append: ' product-card--sold-out'
+  endunless
+  # Wishlist/compare/quick-view are fixed top-right per spec; if badges are
+  # also set to top-right, move actions to top-left instead of overlapping.
+  if settings.label_position == 'top-right'
+    assign card_classes = card_classes | append: ' product-card--actions-left'
+  endif
+
+  assign rating_value = product.metafields.reviews.rating.value
+  assign rating_count = product.metafields.reviews.rating_count.value
+  assign card_sizes = '(min-width: 1200px) 25vw, (min-width: 750px) 33vw, 50vw'
+-%}
+<div class="{{ card_classes }}" data-product-card data-product-id="{{ product.id }}">
+  <div class="product-card__media">
+    <a href="{{ product.url }}" class="product-card__media-link aspect-ratio" style="aspect-ratio: {{ media_ratio }};" tabindex="-1" aria-hidden="true">
+      {% render 'responsive-image', image: card_image, sizes: card_sizes, priority: priority, wrap: false, class: 'product-card__image product-card__image--primary' %}
+      {%- if show_secondary -%}
+        {% render 'responsive-image', image: secondary_image, sizes: card_sizes, wrap: false, class: 'product-card__image product-card__image--secondary' %}
+      {%- endif -%}
+    </a>
+
+    <div class="product-card__labels product-card__labels--{{ settings.label_position }}">
+      {% render 'product-labels', product: product %}
+    </div>
+
+    <div class="product-card__actions">
+      <button type="button" class="product-card__action-button" data-wishlist-toggle data-product-id="{{ product.id }}" aria-pressed="false" aria-label="{{ 'products.product.wishlist_add' | t }}">
+        {% render 'icon', name: 'heart', size: 18 %}
+      </button>
+      <button type="button" class="product-card__action-button" data-compare-toggle data-product-id="{{ product.id }}" aria-pressed="false" aria-label="{{ 'products.product.compare_add' | t }}">
+        {% render 'icon', name: 'git-compare', size: 18 %}
+      </button>
+      <button type="button" class="product-card__action-button" data-quick-view-trigger="{{ product.url }}" data-product-handle="{{ product.handle }}" aria-label="{{ 'products.product.quick_view' | t }}">
+        {% render 'icon', name: 'eye', size: 18 %}
+      </button>
+    </div>
+
+    {%- if settings.card_quick_add_enabled -%}
+      <div class="product-card__quick-add">
+        {%- if product.available == false -%}
+          <span class="btn btn--secondary product-card__quick-add-button" aria-disabled="true">
+            <span class="btn__label">{{ 'products.product.sold_out' | t }}</span>
+          </span>
+        {%- elsif product.has_only_default_variant -%}
+          <quick-add-button data-variant-id="{{ current_variant.id }}" data-added-label="{{ 'products.product.added' | t }}" data-error-label="{{ 'products.product.add_error' | t }}">
+            <button type="button" class="btn btn--primary product-card__quick-add-button" aria-label="{{ 'products.product.quick_add' | t }} — {{ product.title | escape }}">
+              <span class="btn__label">{{ 'products.product.quick_add' | t }} — {{ current_variant.price | money }}</span>
+              <span class="product-card__quick-add-icon">{% render 'icon', name: 'plus', size: 18 %}</span>
+            </button>
+          </quick-add-button>
+        {%- else -%}
+          <a href="{{ product.url }}" class="btn btn--secondary product-card__quick-add-button">
+            <span class="btn__label">{{ 'products.product.choose_options' | t }}</span>
+            <span class="product-card__quick-add-icon">{% render 'icon', name: 'plus', size: 18 %}</span>
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
 
   <div class="product-card__info">
-    <h3><a href="{{ product.url }}">{{ product.title }}</a></h3>
-    {% render 'price', product: product %}
+    {%- if settings.card_show_vendor and product.vendor != blank -%}
+      <span class="product-card__vendor caption">{{ product.vendor }}</span>
+    {%- endif -%}
+
+    <h3 class="product-card__title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+
+    {%- if settings.card_show_rating and rating_value != blank -%}
+      <div class="product-card__rating" aria-label="{{ 'products.product.rating' | t: rating: rating_value, count: rating_count }}">
+        {% render 'icon', name: 'star', size: 14, class: 'icon--filled' %}
+        <span class="text-small" aria-hidden="true">{{ rating_value }} ({{ rating_count }})</span>
+      </div>
+    {%- endif -%}
+
+    {% render 'price', product: product, size: 'card' %}
   </div>
-</article>
+</div>

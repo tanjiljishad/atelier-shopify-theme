@@ -1,0 +1,76 @@
+{%- comment -%}
+  Product labels (spec §8: "max 2 per card, priority: Sold out > Sale > New >
+  custom"). Computes which badges apply to a product and renders each through
+  snippets/badge.liquid — this snippet owns the product-specific detection
+  logic; badge.liquid stays a dumb, reusable presentational chip.
+
+  Priority order: Sold out > Sale > New > Preorder > Low stock > Custom
+  metafield, capped at `max` (default 2).
+
+  Detection:
+  - Sold out: product.available == false
+  - Sale: compare_at_price > price (shows the actual % off)
+  - New: tagged "new", OR published within settings.product_label_new_days
+  - Preorder: tagged "preorder"
+  - Low stock: same settings.inventory_low_stock_threshold as
+    inventory-indicator.liquid — one definition of "low stock", not two
+  - Custom: product.metafields.custom.label (single-line text metafield merchants
+    define themselves — the only one of these with no fixed vocabulary)
+
+  Accepts: product (required), max: integer (default 2).
+{%- endcomment -%}
+{%- liquid
+  assign max_labels = max | default: 2
+  assign shown = 0
+-%}
+{%- capture labels_html -%}
+  {%- unless product.available -%}
+    {%- if shown < max_labels -%}
+      {% render 'badge', text: 'products.product.sold_out' | t, tone: 'sold-out' %}
+      {%- assign shown = shown | plus: 1 -%}
+    {%- endif -%}
+  {%- endunless -%}
+
+  {%- if product.available and product.compare_at_price > product.price and shown < max_labels -%}
+    {%- assign discount_percent = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round -%}
+    {%- assign sale_badge_text = 'products.product.sale_percent' | t: percent: discount_percent -%}
+    {% render 'badge', text: sale_badge_text, tone: 'sale' %}
+    {%- assign shown = shown | plus: 1 -%}
+  {%- endif -%}
+
+  {%- assign is_new = false -%}
+  {%- if product.tags contains 'new' -%}
+    {%- assign is_new = true -%}
+  {%- elsif settings.product_label_new_days > 0 -%}
+    {%- assign now_ts = 'now' | date: '%s' -%}
+    {%- assign published_ts = product.published_at | date: '%s' -%}
+    {%- assign days_since_published = now_ts | minus: published_ts | divided_by: 86400 -%}
+    {%- if days_since_published <= settings.product_label_new_days -%}
+      {%- assign is_new = true -%}
+    {%- endif -%}
+  {%- endif -%}
+  {%- if is_new and shown < max_labels -%}
+    {% render 'badge', text: 'products.product.new' | t, tone: 'accent' %}
+    {%- assign shown = shown | plus: 1 -%}
+  {%- endif -%}
+
+  {%- if product.tags contains 'preorder' and shown < max_labels -%}
+    {% render 'badge', text: 'products.product.preorder' | t, tone: 'info' %}
+    {%- assign shown = shown | plus: 1 -%}
+  {%- endif -%}
+
+  {%- assign inv_variant = product.selected_or_first_available_variant -%}
+  {%- if inv_variant.inventory_management != blank and inv_variant.inventory_quantity > 0 and inv_variant.inventory_quantity <= settings.inventory_low_stock_threshold and shown < max_labels -%}
+    {%- assign low_stock_badge_text = 'products.product.low_stock' | t: count: inv_variant.inventory_quantity -%}
+    {% render 'badge', text: low_stock_badge_text, tone: 'warning' %}
+    {%- assign shown = shown | plus: 1 -%}
+  {%- endif -%}
+
+  {%- if product.metafields.custom.label != blank and shown < max_labels -%}
+    {% render 'badge', text: product.metafields.custom.label, tone: 'accent' %}
+    {%- assign shown = shown | plus: 1 -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- if labels_html != blank -%}
+  <div class="product-labels">{{ labels_html }}</div>
+{%- endif -%}

@@ -327,6 +327,90 @@
     ]
   },
   {
+    "name": "Product cards",
+    "settings": [
+      {
+        "type": "select",
+        "id": "card_image_ratio",
+        "label": "Image ratio",
+        "options": [
+          { "value": "4/5", "label": "Portrait (4:5)" },
+          { "value": "1/1", "label": "Square (1:1)" },
+          { "value": "3/4", "label": "Portrait (3:4)" }
+        ],
+        "default": "4/5"
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_secondary_image",
+        "label": "Show second image on hover",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "card_hover_effect",
+        "label": "Image hover effect",
+        "options": [
+          { "value": "crossfade", "label": "Crossfade to second image" },
+          { "value": "zoom", "label": "Zoom" },
+          { "value": "none", "label": "None" }
+        ],
+        "default": "crossfade",
+        "info": "\"Crossfade\" falls back to a zoom automatically on cards without a second image."
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_vendor",
+        "label": "Show vendor",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_rating",
+        "label": "Show rating",
+        "default": true,
+        "info": "Only appears for products with review data available (from a reviews app writing to the reviews.rating metafield)."
+      },
+      {
+        "type": "checkbox",
+        "id": "card_quick_add_enabled",
+        "label": "Enable quick add",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "label_position",
+        "label": "Badge position",
+        "options": [
+          { "value": "top-left", "label": "Top left" },
+          { "value": "top-right", "label": "Top right" }
+        ],
+        "default": "top-left"
+      },
+      {
+        "type": "range",
+        "id": "product_label_new_days",
+        "label": "\"New\" badge duration",
+        "min": 0,
+        "max": 60,
+        "step": 1,
+        "unit": "days",
+        "default": 14,
+        "info": "Also shows for any product tagged \"new\", regardless of publish date. Set to 0 to only use the tag."
+      },
+      {
+        "type": "range",
+        "id": "inventory_low_stock_threshold",
+        "label": "Low stock threshold",
+        "min": 1,
+        "max": 20,
+        "step": 1,
+        "default": 10,
+        "info": "Used by both the low-stock badge and the inventory indicator."
+      }
+    ]
+  },
+  {
     "name": "Animations",
     "settings": [
       {

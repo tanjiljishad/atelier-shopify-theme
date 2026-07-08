@@ -18,24 +18,39 @@
     resource hint. Defaults to false (loading="lazy" + fetchpriority="auto"),
     matching settings.image_loading_strategy's "eager first section, lazy rest".
   - alt / class: standard overrides.
+  - wrap: true (default) renders the usual aspect-ratio <div> wrapper. Pass false
+    to emit a bare <img>/placeholder <svg> with no wrapper — for composite media
+    like the product card's primary/secondary hover-crossfade pair, where the
+    caller owns a single shared aspect-ratio box and needs both images layered
+    as its direct children (theme.css already positions `.aspect-ratio > img`
+    absolutely, so no new CSS is needed for this case).
 {%- endcomment -%}
 {%- liquid
   assign img_widths = widths | default: '360,480,640,768,960,1200,1440,1920,2048'
   assign img_sizes = sizes | default: '(min-width: 990px) 50vw, 100vw'
   assign img_alt = alt | default: image.alt | escape
+  assign should_wrap = wrap
+  if wrap == blank
+    assign should_wrap = true
+  endif
   assign wrapper_class = 'aspect-ratio responsive-image'
-  if class
+  if class and should_wrap
     assign wrapper_class = wrapper_class | append: ' ' | append: class
+  endif
+  assign img_style = ''
+  if image.presentation.focal_point
+    assign img_style = 'object-position: ' | append: image.presentation.focal_point | append: ';'
   endif
 -%}
 {%- if image -%}
-  <div class="{{ wrapper_class }}"{% if aspect_ratio %} style="aspect-ratio: {{ aspect_ratio }};"{% endif %}>
+  {%- capture rendered_image -%}
     {%- if priority -%}
       {{ image | image_url: width: 100 | image_tag:
            widths: img_widths,
            sizes: img_sizes,
            alt: img_alt,
-           class: 'responsive-image__img',
+           class: class | default: 'responsive-image__img',
+           style: img_style,
            loading: 'eager',
            fetchpriority: 'high',
            preload: true
@@ -45,14 +60,24 @@
            widths: img_widths,
            sizes: img_sizes,
            alt: img_alt,
-           class: 'responsive-image__img',
+           class: class | default: 'responsive-image__img',
+           style: img_style,
            loading: 'lazy',
            fetchpriority: 'auto'
       -}}
     {%- endif -%}
-  </div>
+  {%- endcapture -%}
+  {%- if should_wrap -%}
+    <div class="{{ wrapper_class }}"{% if aspect_ratio %} style="aspect-ratio: {{ aspect_ratio }};"{% endif %}>{{ rendered_image }}</div>
+  {%- else -%}
+    {{ rendered_image }}
+  {%- endif -%}
 {%- else -%}
-  <div class="{{ wrapper_class }} responsive-image--placeholder"{% if aspect_ratio %} style="aspect-ratio: {{ aspect_ratio }};"{% endif %}>
-    {{ 'image' | placeholder_svg_tag: 'responsive-image__placeholder' }}
-  </div>
+  {%- if should_wrap -%}
+    <div class="{{ wrapper_class }} responsive-image--placeholder"{% if aspect_ratio %} style="aspect-ratio: {{ aspect_ratio }};"{% endif %}>
+      {{ 'image' | placeholder_svg_tag: 'responsive-image__placeholder' }}
+    </div>
+  {%- else -%}
+    {{ 'image' | placeholder_svg_tag: class | default: 'responsive-image__placeholder' }}
+  {%- endif -%}
 {%- endif -%}

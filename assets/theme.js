@@ -71,3 +71,9 @@ if (document.querySelector('.tooltip__trigger')) {
   import('./tooltip.js').then(({ initTooltips }) => initTooltips());
 }
 if (document.querySelector('announcement-bar')) import('./announcement-bar.js');
+if (document.querySelector('quick-add-button')) import('./quick-add.js');
+if (document.querySelector('[data-quick-view-trigger]')) {
+  import('./quick-view.js').then(({ initQuickViewTriggers }) => initQuickViewTriggers());
+}
+if (document.querySelector('[data-wishlist-toggle]')) import('./wishlist.js');
+if (document.querySelector('[data-compare-toggle]')) import('./compare.js');

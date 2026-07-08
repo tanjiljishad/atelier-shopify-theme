@@ -2095,3 +2095,461 @@ site-header.is-hidden {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* -------------------------------------------------------------------------
+   17. Product card
+   ------------------------------------------------------------------------- */
+
+.icon--filled {
+  fill: currentColor;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card__media {
+  position: relative;
+}
+
+.product-card__media-link {
+  display: block;
+  background: var(--color-card);
+}
+
+.product-card__image {
+  transition:
+    opacity 350ms var(--ease-out),
+    transform var(--dur-editorial) var(--ease-out);
+}
+
+.product-card__image--secondary {
+  opacity: 0;
+}
+
+.product-card--sold-out .product-card__image--primary {
+  opacity: var(--opacity-muted-media);
+}
+
+@media (hover: hover) {
+  .product-card--hover-crossfade:hover .product-card__image--primary,
+  .product-card--hover-crossfade:focus-within .product-card__image--primary {
+    opacity: 0;
+  }
+
+  .product-card--hover-crossfade:hover .product-card__image--secondary,
+  .product-card--hover-crossfade:focus-within .product-card__image--secondary {
+    opacity: 1;
+  }
+
+  .product-card--hover-zoom:hover .product-card__image--primary,
+  .product-card--hover-zoom:focus-within .product-card__image--primary {
+    transform: scale(1.04);
+  }
+}
+
+.product-card__labels {
+  position: absolute;
+  top: var(--space-3);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: calc(100% - var(--space-6));
+}
+
+.product-labels {
+  display: contents;
+}
+
+.product-card__labels--top-left {
+  left: var(--space-3);
+  align-items: flex-start;
+}
+
+.product-card__labels--top-right {
+  right: var(--space-3);
+  align-items: flex-end;
+}
+
+.product-card__actions {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.product-card--actions-left .product-card__actions {
+  right: auto;
+  left: var(--space-3);
+}
+
+@media (hover: hover) {
+  .product-card__actions {
+    opacity: 0;
+  }
+
+  .product-card:hover .product-card__actions,
+  .product-card:focus-within .product-card__actions {
+    opacity: 1;
+  }
+}
+
+.product-card__action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.product-card__action-button:hover {
+  color: var(--color-accent);
+}
+
+.product-card__action-button[aria-pressed='true'] {
+  color: var(--color-accent);
+}
+
+.product-card__action-button[aria-pressed='true'] .icon {
+  fill: currentColor;
+}
+
+.product-card__quick-add {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: var(--space-3);
+  transform: translateY(100%);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .product-card:hover .product-card__quick-add,
+  .product-card:focus-within .product-card__quick-add {
+    transform: translateY(0);
+  }
+}
+
+.product-card__quick-add-button {
+  display: flex;
+  width: 100%;
+}
+
+.product-card__quick-add-button--error {
+  background: var(--color-error) !important;
+  color: var(--color-button-label) !important;
+}
+
+.product-card__quick-add-icon {
+  display: none;
+}
+
+/* Mobile: persistent small "+" chip bottom-right instead of a hover-revealed
+   full-width bar (spec §5.2) — there's no hover on touch to reveal it with. */
+@media (max-width: 749px) {
+  .product-card__quick-add {
+    inset-inline: auto;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    padding: 0;
+    transform: none;
+  }
+
+  .product-card__quick-add-button {
+    width: 36px;
+    height: 36px;
+    min-height: 0;
+    padding: 0;
+    border-radius: var(--radius-pill);
+  }
+
+  .product-card__quick-add-button .btn__label {
+    display: none;
+  }
+
+  .product-card__quick-add-icon {
+    display: inline-flex;
+  }
+}
+
+.product-card__info {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-4);
+}
+
+.product-card__vendor {
+  color: var(--color-muted);
+}
+
+.product-card__title {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-h5);
+}
+
+.product-card__title a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.product-card__title a:hover {
+  color: var(--color-accent);
+}
+
+.product-card__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-accent);
+}
+
+/* -------------------------------------------------------------------------
+   18. Collection card
+   ------------------------------------------------------------------------- */
+
+.collection-card {
+  position: relative;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.collection-card__media {
+  position: relative;
+  background: var(--color-card);
+}
+
+.collection-card__image {
+  transition: transform var(--dur-editorial) var(--ease-out);
+}
+
+.collection-card:hover .collection-card__image {
+  transform: scale(1.04);
+}
+
+.collection-card__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(28, 27, 24, 0) 40%, rgba(28, 27, 24, 0.55));
+}
+
+.collection-card__overlay-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.collection-card--overlay .collection-card__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  color: var(--color-text);
+}
+
+.collection-card--standard .collection-card__info {
+  padding-top: var(--space-4);
+}
+
+.collection-card--standard .collection-card__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  color: var(--color-text);
+}
+
+.collection-card__count {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-muted);
+}
+
+.collection-card__description {
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+/* -------------------------------------------------------------------------
+   19. Variant picker
+   ------------------------------------------------------------------------- */
+
+.variant-picker {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.variant-picker__option {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  border: none;
+}
+
+.variant-picker__label {
+  padding: 0;
+}
+
+.variant-picker__label [data-selected-value] {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.variant-picker__values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.variant-pill {
+  position: relative;
+}
+
+.variant-pill__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-btn);
+  font-size: var(--text-small);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.variant-pill__input:checked + .variant-pill__box {
+  border: 1.5px solid var(--color-text);
+}
+
+.variant-pill__input:focus-visible + .variant-pill__box {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.variant-pill--unavailable .variant-pill__box {
+  color: var(--color-muted);
+  background-image: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.5px),
+    var(--color-border) calc(50% - 0.5px),
+    var(--color-border) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+.variant-swatch {
+  position: relative;
+}
+
+.variant-swatch__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-card);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 0 1px var(--color-border);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.variant-swatch__input:checked + .variant-swatch__box {
+  box-shadow: 0 0 0 1.5px var(--color-text);
+}
+
+.variant-swatch__input:focus-visible + .variant-swatch__box {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.variant-swatch--unavailable .variant-swatch__box {
+  opacity: var(--opacity-disabled);
+}
+
+.variant-picker__select {
+  min-width: 160px;
+}
+
+/* -------------------------------------------------------------------------
+   20. Inventory indicator
+   ------------------------------------------------------------------------- */
+
+.inventory-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+
+.inventory-indicator__dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+.inventory-indicator--low-stock .inventory-indicator__dot {
+  background: var(--color-warning);
+}
+
+.inventory-indicator--low-stock .inventory-indicator__message {
+  color: var(--color-warning);
+}
+
+.inventory-indicator--out-of-stock .inventory-indicator__dot {
+  background: var(--color-muted);
+}
+
+.inventory-indicator--out-of-stock .inventory-indicator__message {
+  color: var(--color-muted);
+}
+
+.inventory-indicator--backorder .inventory-indicator__dot {
+  background: var(--color-info);
+}
+
+.inventory-indicator__bar {
+  display: inline-block;
+  width: 60px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.inventory-indicator__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-warning);
+}
+
+.inventory-indicator--in-stock .inventory-indicator__bar-fill,
+.inventory-indicator--backorder .inventory-indicator__bar-fill {
+  background: var(--color-success);
+}

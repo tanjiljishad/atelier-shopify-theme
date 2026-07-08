@@ -1,0 +1,45 @@
+{%- comment -%}
+  Collection card (spec §5.2, §6). Two presentations of the same data —
+  `mode` is a per-instance param, not a global setting, since the sections
+  that will call this (featured collections, collection lists — later
+  milestones) each decide their own default rather than sharing one site-wide
+  choice; that's a real difference from product-card, which spec treats as
+  identical everywhere it appears.
+
+  Accepts:
+  - collection (required)
+  - mode: 'standard' (default, image + title/count below) | 'overlay' (scrim +
+    centered title on the image)
+  - aspect_ratio: default '1/1' (spec: "image (3:4 or square)")
+  - show_description: bool, default false
+  - priority: passed through to the image
+{%- endcomment -%}
+{%- liquid
+  assign card_mode = mode | default: 'standard'
+  assign ratio = aspect_ratio | default: '1/1'
+-%}
+<a href="{{ collection.url }}" class="collection-card collection-card--{{ card_mode }}">
+  <div class="collection-card__media aspect-ratio" style="aspect-ratio: {{ ratio }};">
+    {% render 'responsive-image', image: collection.featured_image, sizes: '(min-width: 990px) 33vw, 50vw', wrap: false, class: 'collection-card__image', priority: priority %}
+
+    {%- if card_mode == 'overlay' -%}
+      <span class="collection-card__scrim" aria-hidden="true"></span>
+      {%- comment -%} Reuses Scheme 2's token set purely for guaranteed text
+      contrast against arbitrary photography — same technique as the
+      transparent header (Milestone 3), not a statement about dark mode. {%- endcomment -%}
+      <div class="collection-card__overlay-content color-scheme-scheme-2">
+        <h3 class="collection-card__title">{{ collection.title }}</h3>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if card_mode == 'standard' -%}
+    <div class="collection-card__info">
+      <h3 class="collection-card__title">{{ collection.title }}</h3>
+      <span class="collection-card__count text-small">{{ collection.products_count }} {{ 'collections.product_count' | t }}</span>
+      {%- if show_description and collection.description != blank -%}
+        <p class="collection-card__description text-small">{{ collection.description | strip_html | truncate: 100 }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</a>

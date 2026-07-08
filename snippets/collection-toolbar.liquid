@@ -1,0 +1,54 @@
+{%- comment -%}
+  Collection toolbar (spec §8): filter toggle (count chip when active),
+  result count, grid switcher, sort. Sticky under the header. Sort submits
+  through the same shared #FacetFiltersForm the sidebar/drawer filters use
+  (see snippets/collection-filters.liquid) so changing it never drops
+  already-active filters — one form, one source of truth for the whole
+  collection's query state.
+
+  Accepts: collection (required), results_count (integer — paginate.items,
+  passed in since Liquid can't see the paginate object from inside a render).
+{%- endcomment -%}
+{%- liquid
+  assign active_filter_count = 0
+  for filter in collection.filters
+    assign active_filter_count = active_filter_count | plus: filter.active_values.size
+  endfor
+-%}
+<div class="collection-toolbar">
+  <button type="button" class="btn btn--outline collection-toolbar__filter-toggle" data-drawer-open="FilterDrawer">
+    {% render 'icon', name: 'sliders-horizontal', size: 16 %}
+    <span class="btn__label">{{ 'collections.filters.filter' | t }}</span>
+    {%- if active_filter_count > 0 -%}
+      <span class="collection-toolbar__filter-count">{{ active_filter_count }}</span>
+    {%- endif -%}
+  </button>
+
+  <p class="collection-toolbar__count text-small">
+    {{ 'collections.general.item_count' | t: count: results_count }}
+  </p>
+
+  <div class="collection-toolbar__end">
+    <div class="collection-toolbar__grid-switcher" role="group" aria-label="{{ 'collections.general.grid_columns' | t }}" data-grid-switcher>
+      <button type="button" class="collection-toolbar__grid-button" data-grid-cols="2" aria-label="{{ 'collections.general.grid_2' | t }}" aria-pressed="false">
+        {% render 'icon', name: 'grid-2x2', size: 18 %}
+      </button>
+      <button type="button" class="collection-toolbar__grid-button" data-grid-cols="3" aria-label="{{ 'collections.general.grid_3' | t }}" aria-pressed="true">
+        {% render 'icon', name: 'grid-3x3', size: 18 %}
+      </button>
+      <button type="button" class="collection-toolbar__grid-button" data-grid-cols="4" aria-label="{{ 'collections.general.grid_4' | t }}" aria-pressed="false">
+        {% render 'icon', name: 'layout-grid', size: 18 %}
+      </button>
+    </div>
+
+    <div class="field__control collection-toolbar__sort">
+      <label class="visually-hidden" for="SortBy">{{ 'collections.general.sort_by' | t }}</label>
+      <select class="field__input field__input--select" id="SortBy" name="sort_by" form="FacetFiltersForm" data-sort-select>
+        {%- for option in collection.sort_options -%}
+          <option value="{{ option.value }}"{% if option.value == collection.sort_by %} selected{% endif %}>{{ option.name }}</option>
+        {%- endfor -%}
+      </select>
+      {% render 'icon', name: 'chevron-down', size: 16, class: 'field__select-icon' %}
+    </div>
+  </div>
+</div>

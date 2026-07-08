@@ -90,3 +90,9 @@ if (document.querySelector('testimonial-carousel')) import('./testimonials.js');
 if (document.querySelector('[data-video-player]')) {
   import('./video-section.js').then(({ initVideoSections }) => initVideoSections());
 }
+if (document.querySelector('[data-collection-section]')) {
+  import('./collection-filters.js').then(({ initCollectionFilters }) => initCollectionFilters());
+}
+if (document.querySelector('[data-grid-switcher]')) {
+  import('./collection-grid.js').then(({ initCollectionGrid }) => initCollectionGrid());
+}

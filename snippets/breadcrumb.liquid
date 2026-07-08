@@ -1,0 +1,26 @@
+{%- comment -%}
+  Breadcrumb — simple Home → Collections → Current trail. Shopify has no
+  built-in breadcrumb data, so this is assembled from routes/objects already
+  available in whatever template renders it. Truncates the middle on mobile
+  via CSS only (text-overflow), never by cutting the Liquid string, so the
+  link itself always stays intact and clickable.
+
+  Accepts: collection (optional — renders the collection-specific trail when given).
+{%- endcomment -%}
+<nav class="breadcrumb" aria-label="{{ 'accessibility.breadcrumb' | t }}">
+  <ol class="breadcrumb__list list-unstyled">
+    <li class="breadcrumb__item">
+      <a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a>
+    </li>
+    {%- if collection -%}
+      <li class="breadcrumb__item" aria-hidden="true">/</li>
+      <li class="breadcrumb__item">
+        <a href="{{ routes.collections_url }}">{{ 'general.collections' | t }}</a>
+      </li>
+      <li class="breadcrumb__item" aria-hidden="true">/</li>
+      <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">
+        {{ collection.title }}
+      </li>
+    {%- endif -%}
+  </ol>
+</nav>

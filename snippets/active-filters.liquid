@@ -1,0 +1,48 @@
+{%- comment -%}
+  Active filter chips + "Clear all" (spec §8 toolbar). Each chip links to
+  Shopify's own `url_to_remove` for that value — no client-side query-string
+  rebuilding, so removing a chip is correct even with several other filters
+  active at once.
+
+  Accepts: collection (required).
+{%- endcomment -%}
+{%- liquid
+  assign has_price_filter = false
+  assign price_filter = blank
+  for filter in collection.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != blank or filter.max_value.value != blank
+        assign has_price_filter = true
+        assign price_filter = filter
+      endif
+    endif
+  endfor
+
+  assign has_active = has_price_filter
+  for filter in collection.filters
+    if filter.active_values.size > 0
+      assign has_active = true
+    endif
+  endfor
+-%}
+{%- if has_active -%}
+  <div class="active-filters">
+    {%- for filter in collection.filters -%}
+      {%- for value in filter.active_values -%}
+        <a href="{{ value.url_to_remove }}" class="active-filters__chip">
+          <span>{{ value.label }}</span>
+          {% render 'icon', name: 'x', size: 12 %}
+        </a>
+      {%- endfor -%}
+    {%- endfor -%}
+
+    {%- if has_price_filter -%}
+      <a href="{{ price_filter.url_to_remove }}" class="active-filters__chip">
+        <span>{{ price_filter.min_value.value | money }} – {{ price_filter.max_value.value | money }}</span>
+        {% render 'icon', name: 'x', size: 12 %}
+      </a>
+    {%- endif -%}
+
+    <a href="{{ collection.url }}" class="active-filters__clear-all">{{ 'collections.filters.clear_all' | t }}</a>
+  </div>
+{%- endif -%}

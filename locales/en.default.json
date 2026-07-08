@@ -4,9 +4,12 @@
     "dismiss_announcement": "Dismiss announcement",
     "main_menu": "Main menu",
     "mobile_menu": "Menu",
-    "dark_mode_toggle": "Dark mode"
+    "dark_mode_toggle": "Dark mode",
+    "breadcrumb": "Breadcrumb"
   },
   "general": {
+    "home": "Home",
+    "collections": "Collections",
     "search": "Search",
     "search_placeholder": "Search products, collections, pages...",
     "search_recent": "Recent searches",
@@ -62,7 +65,32 @@
     }
   },
   "collections": {
-    "product_count": "products"
+    "product_count": "products",
+    "filters": {
+      "filter": "Filter",
+      "price_from": "From",
+      "price_to": "To",
+      "clear_all": "Clear all",
+      "show_results": "Show {{ count }} results"
+    },
+    "general": {
+      "item_count": "{{ count }} products",
+      "grid_columns": "Grid columns",
+      "grid_2": "2 columns",
+      "grid_3": "3 columns",
+      "grid_4": "4 columns",
+      "sort_by": "Sort by",
+      "pagination": "Pagination",
+      "previous_page": "Previous page",
+      "next_page": "Next page",
+      "load_more": "Load more",
+      "showing_count": "Showing {{ shown }} of {{ total }}",
+      "no_matches_title": "No products found",
+      "no_matches_message": "Try removing a filter to see more results.",
+      "empty_title": "This collection is empty",
+      "empty_message": "Check back soon — new products are on the way.",
+      "continue_shopping": "Continue shopping"
+    }
   },
   "sections": {
     "hero": {

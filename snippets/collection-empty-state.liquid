@@ -1,0 +1,21 @@
+{%- comment -%}
+  Empty collection state (spec §5.6 general empty-state pattern: thin-stroke
+  glyph + H4 + one line + one primary CTA). Two cases: the collection itself
+  has no products at all, or filters narrowed the current view to zero
+  results — the latter gets a "clear filters" CTA instead of "continue
+  shopping" since there IS inventory here, just not matching the filters.
+
+  Accepts: has_active_filters (bool).
+{%- endcomment -%}
+<div class="collection-empty-state">
+  {% render 'icon', name: 'search', size: 48 %}
+  {%- if has_active_filters -%}
+    <h2 class="collection-empty-state__title">{{ 'collections.general.no_matches_title' | t }}</h2>
+    <p class="text-small">{{ 'collections.general.no_matches_message' | t }}</p>
+    <a href="{{ collection.url }}" class="btn btn--primary">{{ 'collections.filters.clear_all' | t }}</a>
+  {%- else -%}
+    <h2 class="collection-empty-state__title">{{ 'collections.general.empty_title' | t }}</h2>
+    <p class="text-small">{{ 'collections.general.empty_message' | t }}</p>
+    <a href="{{ routes.root_url }}" class="btn btn--primary">{{ 'collections.general.continue_shopping' | t }}</a>
+  {%- endif -%}
+</div>

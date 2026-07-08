@@ -1,0 +1,71 @@
+{%- comment -%}
+  Filter groups (spec §8): accordion per filter, built entirely on
+  collection.filters (Shopify Search & Discovery) — no custom filter engine.
+  Rendered exactly once in the DOM (inside #FacetFiltersForm in
+  main-collection-product-grid.liquid); desktop shows it as a static sidebar
+  and mobile as a drawer purely via CSS repositioning the same markup, so
+  there's only ever one real copy of the form to keep in sync.
+
+  Price is the one filter type that needs real number inputs (a continuous
+  range has no discrete "add/remove" URL) instead of checkboxes; everything
+  else routes through collection-filter-value.liquid.
+
+  Accepts: collection (required).
+{%- endcomment -%}
+{%- if collection.filters.size > 0 -%}
+  <accordion-group class="collection-filters">
+    {%- for filter in collection.filters -%}
+      <details class="accordion-item collection-filters__group"{% if filter.active_values.size > 0 %} open{% endif %}>
+        <summary class="accordion-item__header">
+          <span class="accordion-item__title">{{ filter.label }}</span>
+          <span class="accordion-item__icon">{% render 'icon', name: 'plus' %}</span>
+        </summary>
+        <div class="accordion-item__panel">
+          <div class="accordion-item__panel-inner">
+            {%- if filter.type == 'price_range' -%}
+              <div class="collection-filter-price">
+                <div class="field">
+                  <label class="field__label" for="FilterPriceMin">{{ 'collections.filters.price_from' | t }}</label>
+                  <div class="field__control">
+                    <input
+                      type="number"
+                      class="field__input"
+                      id="FilterPriceMin"
+                      name="{{ filter.param_name }}.gte"
+                      value="{{ filter.min_value.value }}"
+                      placeholder="0"
+                      min="0"
+                    >
+                  </div>
+                </div>
+                <span class="collection-filter-price__separator" aria-hidden="true">–</span>
+                <div class="field">
+                  <label class="field__label" for="FilterPriceMax">{{ 'collections.filters.price_to' | t }}</label>
+                  <div class="field__control">
+                    <input
+                      type="number"
+                      class="field__input"
+                      id="FilterPriceMax"
+                      name="{{ filter.param_name }}.lte"
+                      value="{{ filter.max_value.value }}"
+                      placeholder="{{ filter.range_max | money_without_currency }}"
+                      min="0"
+                    >
+                  </div>
+                </div>
+              </div>
+            {%- elsif filter.type == 'boolean' -%}
+              {% render 'collection-filter-value', value: filter.true_value %}
+            {%- else -%}
+              <div class="collection-filters__values">
+                {%- for value in filter.values -%}
+                  {% render 'collection-filter-value', value: value %}
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </details>
+    {%- endfor -%}
+  </accordion-group>
+{%- endif -%}

@@ -1,13 +1,69 @@
-{% if paginate.pages > 1 %}
-  <nav class="pagination" role="navigation" aria-label="Pagination">
-    {% if paginate.previous %}
-      <a href="{{ paginate.previous.url }}">Previous</a>
-    {% endif %}
+{%- comment -%}
+  Pagination (spec §8, §5.5). Two display styles over the same paginate
+  object rather than two parallel snippets:
+  - 'load_more' (default): a button + "Showing X of Y" count — spec's
+    default because it "preserves footer reachability and history."
+  - 'numbered': ghost numbers, active = ink underline, via paginate.parts
+    (Shopify supplies the "…" gap entries automatically).
 
-    <span>Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+  Works with zero JS in both styles: "Load more" is a real link to the next
+  page's URL (assets/collection-filters.js progressively enhances it into an
+  in-place append-and-fetch instead of a full navigation); numbered links are
+  always plain navigation.
 
-    {% if paginate.next %}
-      <a href="{{ paginate.next.url }}">Next</a>
-    {% endif %}
-  </nav>
-{% endif %}
+  Accepts: paginate (required), style: 'load_more' (default) | 'numbered'.
+{%- endcomment -%}
+{%- liquid
+  assign pagination_style = style | default: 'load_more'
+-%}
+{%- if paginate.pages > 1 -%}
+  {%- if pagination_style == 'load_more' -%}
+    <div class="pagination pagination--load-more" data-pagination>
+      <p class="pagination__count text-small">
+        {%- assign shown_count = paginate.current_offset | plus: paginate.page_size | at_most: paginate.items -%}
+        {{ 'collections.general.showing_count' | t: shown: shown_count, total: paginate.items }}
+      </p>
+      {%- if paginate.next -%}
+        <a href="{{ paginate.next.url }}" class="btn btn--outline pagination__load-more" data-load-more>
+          <span class="btn__label">{{ 'collections.general.load_more' | t }}</span>
+        </a>
+      {%- endif -%}
+    </div>
+  {%- else -%}
+    <nav class="pagination pagination--numbered" role="navigation" aria-label="{{ 'collections.general.pagination' | t }}">
+      {%- if paginate.previous -%}
+        <a href="{{ paginate.previous.url }}" class="pagination__arrow" aria-label="{{ 'collections.general.previous_page' | t }}">
+          {% render 'icon', name: 'chevron-down', size: 16, class: 'icon--rotate-90' %}
+        </a>
+      {%- else -%}
+        <span class="pagination__arrow pagination__arrow--disabled" aria-hidden="true">
+          {% render 'icon', name: 'chevron-down', size: 16, class: 'icon--rotate-90' %}
+        </span>
+      {%- endif -%}
+
+      <ul class="pagination__list list-unstyled">
+        {%- for part in paginate.parts -%}
+          <li>
+            {%- if part.is_link -%}
+              <a href="{{ part.url }}" class="pagination__link">{{ part.title }}</a>
+            {%- elsif part.title == paginate.current_page -%}
+              <span class="pagination__link pagination__link--current" aria-current="page">{{ part.title }}</span>
+            {%- else -%}
+              <span class="pagination__ellipsis" aria-hidden="true">{{ part.title }}</span>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- if paginate.next -%}
+        <a href="{{ paginate.next.url }}" class="pagination__arrow" aria-label="{{ 'collections.general.next_page' | t }}">
+          {% render 'icon', name: 'chevron-down', size: 16, class: 'icon--rotate-neg90' %}
+        </a>
+      {%- else -%}
+        <span class="pagination__arrow pagination__arrow--disabled" aria-hidden="true">
+          {% render 'icon', name: 'chevron-down', size: 16, class: 'icon--rotate-neg90' %}
+        </span>
+      {%- endif -%}
+    </nav>
+  {%- endif -%}
+{%- endif -%}

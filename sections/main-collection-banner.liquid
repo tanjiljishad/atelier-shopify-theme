@@ -1,0 +1,85 @@
+{%- comment -%}
+  Collection banner (spec §8): compact 280px image + scrim + title, or a
+  minimal text-only header — compact is default since "tall banners waste
+  the LCP viewport." A separate section (not baked into the product grid
+  section) so a merchant can reorder/hide it independently, matching how
+  Shopify's own reference themes split collection page regions.
+
+  Overlay text borrows Scheme 2 for guaranteed contrast against arbitrary
+  photography — same technique as every other on-image section since
+  Milestone 3.
+{%- endcomment -%}
+{%- liquid
+  assign has_image = false
+  if section.settings.image != blank and section.settings.style == 'compact'
+    assign has_image = true
+  endif
+  assign content_classes = 'container collection-banner__content'
+  if has_image and section.settings.enable_overlay
+    assign content_classes = content_classes | append: ' color-scheme-scheme-2'
+  endif
+-%}
+<section class="collection-banner collection-banner--{{ section.settings.style }}">
+  {%- if has_image -%}
+    <div class="collection-banner__media">
+      {% render 'responsive-image', image: section.settings.image, sizes: '100vw', priority: true, wrap: false, class: 'collection-banner__image' %}
+      {%- if section.settings.enable_overlay -%}
+        <div class="collection-banner__scrim" aria-hidden="true"></div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <div class="{{ content_classes }}">
+    {%- if section.settings.show_breadcrumb -%}
+      {% render 'breadcrumb', collection: collection %}
+    {%- endif -%}
+
+    <h1 class="collection-banner__title">{{ collection.title }}</h1>
+
+    {%- if section.settings.show_description and collection.description != blank -%}
+      <div class="collection-banner__description prose">{{ collection.description }}</div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection banner",
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "compact", "label": "Compact image" },
+        { "value": "minimal", "label": "Minimal (text only)" }
+      ],
+      "default": "compact"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Compact style only."
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay",
+      "label": "Overlay scrim",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show collection description",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumb",
+      "label": "Show breadcrumb",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

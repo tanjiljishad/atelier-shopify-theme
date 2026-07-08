@@ -1,0 +1,52 @@
+{%- comment -%}
+  A single filter value — checkbox (list/boolean filters, via the existing
+  snippets/checkbox.liquid) or swatch (color/pattern filters, when Shopify's
+  Search & Discovery admin config gives the value a `.swatch`). The swatch
+  markup reuses the same `.variant-swatch` CSS built for the PDP variant
+  picker (Milestone 4) — checkbox semantics instead of radio, since multiple
+  colors can be filtered at once, but the visual is identical.
+
+  Zero-result values are muted (spec: "zero-result options muted") but never
+  disabled — a currently-inactive, zero-count value might still become valid
+  once another active filter is removed, so it stays a real, clickable checkbox.
+
+  Accepts: value (a filter_value object).
+{%- endcomment -%}
+{%- liquid
+  assign is_muted = false
+  if value.count == 0 and value.active == false
+    assign is_muted = true
+  endif
+-%}
+{%- if value.swatch -%}
+  <label class="variant-swatch{% if is_muted %} is-muted{% endif %}">
+    <input
+      type="checkbox"
+      class="variant-swatch__input visually-hidden"
+      name="{{ value.param_name }}"
+      value="{{ value.value }}"
+      {% if value.active %}checked{% endif %}
+    >
+    <span
+      class="variant-swatch__box"
+      {%- if value.swatch.color %}
+        style="background-color: {{ value.swatch.color }};"
+      {%- elsif value.swatch.image %}
+        style="background-image: url('{{ value.swatch.image | image_url: width: 64 }}');"
+      {%- endif %}
+      aria-hidden="true"
+    ></span>
+    <span class="visually-hidden">{{ value.label }} ({{ value.count }})</span>
+  </label>
+{%- else -%}
+  {%- capture value_label -%}{{ value.label }} <span class="text-small">({{ value.count }})</span>{%- endcapture -%}
+  {%- assign filter_checkbox_class = 'checkbox-field--filter' -%}
+  {%- if is_muted -%}{%- assign filter_checkbox_class = filter_checkbox_class | append: ' is-muted' -%}{%- endif -%}
+  {% render 'checkbox',
+    name: value.param_name,
+    value: value.value,
+    label: value_label,
+    checked: value.active,
+    extra_class: filter_checkbox_class
+  %}
+{%- endif -%}

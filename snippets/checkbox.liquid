@@ -10,19 +10,29 @@
   <span aria-hidden="true">, never a replacement for the real control.
 
   Accepts:
-  - id (required), name (required), label (required)
+  - id: optional (a wrapping <label> makes `for`/`id` unnecessary — the whole
+    row is already clickable without it; only pass one if some other code
+    needs to target this exact input)
+  - name (required), label (required)
   - kind: 'checkbox' (default) | 'radio'
   - value: input value (relevant for radio groups / checkbox arrays)
   - checked (bool), required (bool)
+  - extra_class: appended to the wrapping <label> — e.g. collection filters
+    use this for their zero-result "muted" state instead of a second,
+    near-identical checkbox implementation.
 {%- endcomment -%}
 {%- liquid
   assign field_kind = kind | default: 'checkbox'
+  assign label_class = 'checkbox-field checkbox-field--' | append: field_kind
+  if extra_class
+    assign label_class = label_class | append: ' ' | append: extra_class
+  endif
 -%}
-<label class="checkbox-field checkbox-field--{{ field_kind }}" for="{{ id }}">
+<label class="{{ label_class }}"{% if id %} for="{{ id }}"{% endif %}>
   <input
     class="checkbox-field__input"
     type="{{ field_kind }}"
-    id="{{ id }}"
+    {% if id %}id="{{ id }}"{% endif %}
     name="{{ name }}"
     {% if value %}value="{{ value }}"{% endif %}
     {% if checked %}checked{% endif %}

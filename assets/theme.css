@@ -3299,3 +3299,468 @@ html.performance-mode .hero--ken-burns .hero__image {
 .faq__list {
   display: block;
 }
+
+/* -------------------------------------------------------------------------
+   33. Collection banner
+   ------------------------------------------------------------------------- */
+
+.collection-banner {
+  position: relative;
+}
+
+.collection-banner--compact {
+  min-height: 280px;
+  display: grid;
+}
+
+.collection-banner__media {
+  position: relative;
+  grid-area: 1 / 1;
+  height: 280px;
+  overflow: hidden;
+}
+
+.collection-banner__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.collection-banner__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(28, 27, 24, 0) 40%, rgba(28, 27, 24, 0.55));
+}
+
+.collection-banner--compact .collection-banner__content {
+  grid-area: 1 / 1;
+  z-index: 1;
+  align-self: end;
+  padding-block: var(--space-6);
+}
+
+.collection-banner--minimal .collection-banner__content {
+  padding-block: var(--space-7);
+}
+
+.collection-banner__title {
+  margin: 0;
+}
+
+.collection-banner__description {
+  margin-top: var(--space-3);
+  max-width: 60ch;
+  color: var(--color-text-secondary);
+}
+
+.collection-banner--compact .collection-banner__description {
+  color: inherit;
+}
+
+/* -------------------------------------------------------------------------
+   34. Breadcrumb
+   ------------------------------------------------------------------------- */
+
+.breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-small);
+  color: var(--color-muted);
+}
+
+.breadcrumb__item a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.breadcrumb__item a:hover {
+  color: var(--color-accent);
+}
+
+.breadcrumb__item--current {
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+
+/* -------------------------------------------------------------------------
+   35. Collection layout, toolbar, active filters
+   ------------------------------------------------------------------------- */
+
+.collection-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.collection-layout__main {
+  flex: 1;
+  min-width: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.collection-layout__main.is-loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.collection-toolbar {
+  position: sticky;
+  top: var(--header-height-mobile, 60px);
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+  margin-bottom: var(--space-6);
+  background: var(--color-background);
+  border-block: 1px solid var(--color-border);
+}
+
+@media (min-width: 750px) {
+  .collection-toolbar {
+    top: var(--header-height-desktop, 72px);
+  }
+}
+
+.collection-toolbar__filter-toggle {
+  position: relative;
+}
+
+.collection-toolbar__filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-button-label);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.collection-toolbar__count {
+  color: var(--color-muted);
+  margin-right: auto;
+}
+
+.collection-toolbar__end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.collection-toolbar__grid-switcher {
+  display: none;
+  gap: var(--space-1);
+}
+
+@media (min-width: 750px) {
+  .collection-toolbar__grid-switcher {
+    display: flex;
+  }
+}
+
+.collection-toolbar__grid-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-btn);
+  color: var(--color-muted);
+}
+
+.collection-toolbar__grid-button[aria-pressed='true'] {
+  color: var(--color-text);
+  background: var(--color-card);
+}
+
+.collection-toolbar__sort {
+  min-width: 160px;
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.active-filters__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.active-filters__chip:hover {
+  border-color: var(--color-text);
+}
+
+.active-filters__clear-all {
+  font-size: var(--text-small);
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* -------------------------------------------------------------------------
+   36. Collection filters panel (desktop sidebar / mobile drawer)
+   ------------------------------------------------------------------------- */
+
+.collection-filters-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.collection-filters-panel__title {
+  margin: 0;
+  font-size: var(--text-h5);
+}
+
+.collection-filters-panel__form {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+
+.collection-filters-panel__footer {
+  padding: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.collection-filters-panel__submit {
+  width: 100%;
+}
+
+/* Desktop sidebar mode: the exact same <theme-drawer> markup, with every
+   fixed/overlay/animation rule neutralized so it renders as a plain static
+   column instead of an off-canvas panel — see the file header comment in
+   main-collection-product-grid.liquid for why this is one DOM node, not two. */
+@media (min-width: 990px) {
+  .collection-filters-panel--sidebar {
+    position: static;
+    inset: auto;
+    z-index: auto;
+    flex-shrink: 0;
+    width: 280px;
+  }
+
+  .collection-filters-panel--sidebar[hidden] {
+    display: block;
+  }
+
+  .collection-filters-panel--sidebar .drawer__scrim {
+    display: none;
+  }
+
+  .collection-filters-panel--sidebar .drawer__panel {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    background: none;
+    box-shadow: none;
+  }
+
+  .collection-filters-panel--sidebar .collection-filters-panel__header,
+  .collection-filters-panel--sidebar .collection-filters-panel__footer {
+    display: none;
+  }
+
+  .collection-filters-panel--sidebar .collection-filters-panel__form {
+    overflow: visible;
+    padding: 0;
+  }
+}
+
+.collection-filters__group {
+  border-color: var(--color-border);
+}
+
+.collection-filters__values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.collection-filters__values:has(.variant-swatch) {
+  gap: var(--space-2);
+}
+
+.collection-filters__values:not(:has(.variant-swatch)) {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.checkbox-field--filter.is-muted,
+.variant-swatch.is-muted {
+  opacity: var(--opacity-disabled);
+}
+
+.collection-filter-price {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.collection-filter-price__separator {
+  padding-bottom: var(--space-4);
+  color: var(--color-muted);
+}
+
+/* -------------------------------------------------------------------------
+   37. Product grid (collection)
+   ------------------------------------------------------------------------- */
+
+.product-grid {
+  --grid-columns: 3;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+}
+
+@media (max-width: 989px) {
+  /* !important is deliberate here, not a specificity shortcut: the merchant's
+     desktop column choice and the visitor's grid-switcher preference are
+     both applied as an inline style (Liquid `style=""` / JS
+     `.style.setProperty()`), which nothing in a stylesheet can outrank
+     without !important. 4 columns squeezed onto a tablet/phone would be
+     unusable regardless of what was chosen for desktop. */
+  .product-grid {
+    --grid-columns: 2 !important;
+  }
+}
+
+@media (max-width: 749px) {
+  .product-grid {
+    gap: 16px;
+  }
+}
+
+.editorial-tile {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  height: 100%;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--color-card);
+}
+
+.editorial-tile__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.editorial-tile__heading {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  right: var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  color: var(--color-text);
+}
+
+/* -------------------------------------------------------------------------
+   38. Pagination
+   ------------------------------------------------------------------------- */
+
+.pagination--load-more {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  text-align: center;
+}
+
+.pagination__count {
+  color: var(--color-muted);
+}
+
+.pagination--numbered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+.pagination__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--color-text);
+}
+
+.pagination__arrow--disabled {
+  color: var(--color-muted);
+  opacity: var(--opacity-disabled);
+}
+
+.pagination__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pagination__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination__link:hover {
+  color: var(--color-text);
+}
+
+.pagination__link--current {
+  color: var(--color-text);
+  border-bottom: 1.5px solid var(--color-text);
+}
+
+.pagination__ellipsis {
+  color: var(--color-muted);
+}
+
+/* -------------------------------------------------------------------------
+   39. Collection empty state
+   ------------------------------------------------------------------------- */
+
+.collection-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-10);
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.collection-empty-state__title {
+  color: var(--color-text);
+}

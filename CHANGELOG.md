@@ -3,6 +3,91 @@
 All notable changes to the Atelier theme are documented here, one entry per
 build milestone. Dates reflect when the milestone was completed.
 
+## Milestone 6 — Collection Experience
+
+**New components**
+Collection banner (compact image+scrim or minimal text-only, breadcrumb,
+description), collection toolbar (filter toggle with active-count chip,
+result count, 2/3/4 grid switcher, sort), filters built entirely on Shopify
+Search & Discovery (`collection.filters` — availability/vendor/type/price/
+color/size/material/tags all come from the same generic renderer, no custom
+filter engine), active-filter chips + clear all, product grid with optional
+editorial break tiles every 8 products, pagination (rebuilt — load-more or
+numbered, over the same `paginate` object), premium empty state (two
+messages: truly-empty collection vs. zero filter matches). Quick add/quick
+view are connected via the existing product-card, not reimplemented.
+
+**Files created**
+`sections/main-collection-banner.liquid`; `snippets/breadcrumb.liquid`,
+`collection-toolbar.liquid`, `collection-filters.liquid`,
+`collection-filter-value.liquid`, `active-filters.liquid`,
+`collection-empty-state.liquid`; `assets/collection-filters.js`,
+`collection-grid.js`.
+
+**Files modified**
+`sections/main-collection-product-grid.liquid` (full rebuild),
+`snippets/pagination.liquid` (full rebuild — now also handles "load more"),
+`snippets/checkbox.liquid` (+`id` optional, +`extra_class` param — see
+decisions), `snippets/icon-sprite.liquid` (+sliders-horizontal, +grid-2x2,
++grid-3x3, +layout-grid, +x), `templates/collection.json`, `assets/theme.css`
+(+~700 lines: sections 33–39), `assets/theme.js`, `locales/en.default.json`.
+
+**Architectural decisions**
+- **One `#FacetFiltersForm`, not two.** Desktop sidebar and mobile drawer
+  can't both exist as separate real forms with the same id — that's invalid
+  HTML and breaks `form="..."` lookups. Instead, `<theme-drawer>` (Milestone
+  3's generic drawer, unmodified) wraps the one real form; a CSS override
+  under `@media (min-width: 990px)` neutralizes every fixed/overlay/transform
+  rule for `.collection-filters-panel--sidebar`, turning the exact same node
+  into a plain static column. One source of truth, zero duplicate markup.
+- **Sidebar applies instantly, drawer applies on submit.** Both read from the
+  same form and the same JS class; the only difference is *when* `apply()`
+  fires — on every `change` event when acting as a sidebar (desktop, visible,
+  low-friction), or only on the "Show N results" submit (drawer — mobile
+  always, desktop optionally), so checking several boxes behind a covered
+  page doesn't jump content around before a visitor is done choosing.
+- **Filtering/sorting/pagination reuse the Section Rendering API fetch
+  pattern from predictive-search.js** (Milestone 3) rather than a new AJAX
+  approach — same technique, applied to a different section/target, not
+  copy-pasted code.
+- **No price histogram** — per earlier project guidance, `collection.filters`'
+  native price_range type (two number inputs) is used as-is; the filter
+  architecture (one generic renderer per filter type) already has a clean
+  slot to add a histogram later without restructuring anything.
+- **Extended `checkbox.liquid` instead of writing a parallel filter-checkbox
+  implementation** — added an optional `extra_class` param (for the
+  zero-result "muted" state) and made `id` optional (a label-wrapped input
+  doesn't need `for`/`id` to be clickable). Confirmed via Theme Check: this
+  snippet's orphan warning cleared once `collection-filter-value.liquid`
+  genuinely called it instead of re-implementing the same markup.
+- Color/pattern filter swatches reuse the exact `.variant-swatch` CSS from
+  the Milestone 4 variant picker (checkbox semantics instead of radio, since
+  multiple colors can be filtered at once) — one swatch look everywhere,
+  not two.
+
+**Bug fixes (caught before shipping)**
+After swapping in fresh filter/sort/pagination results, the pagination and
+"load more" click listeners were never re-attached to the new DOM node —
+delegated from the old (now-removed) container, they'd have silently stopped
+working after the very first AJAX update. Fixed by re-binding after every
+swap. A fragile regex was stripping `section_id` from the fallback
+navigation URL in the network-failure path — replaced with the same
+`URLSearchParams` approach used everywhere else for consistency and
+correctness. An `extra_class` value built via a nonsensical `remove`/`prepend`
+filter chain (a copy-paste-era mistake caught on self-review before it ever
+reached Theme Check) — replaced with a plain `assign`/`if`.
+
+**Known follow-ups for Milestone 7**
+The AJAX filter engine hasn't been checked against a real store with Search
+& Discovery actually configured — `collection.filters` returns nothing on a
+store without filterable metafields/options set up, so the empty-filters
+path (no sidebar rendered at all) needs a real check too. Price range's
+`{{ filter.param_name }}.gte`/`.lte` field names are a well-documented
+Shopify convention but untested against a live price filter. The `.rte`
+dead-class issue (flagged since Milestone 2) remains in `main-page.liquid`.
+
+---
+
 ## Milestone 5 — Homepage Experience
 
 **New components**

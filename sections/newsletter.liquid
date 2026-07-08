@@ -1,0 +1,88 @@
+{%- comment -%}
+  Newsletter (spec §5.5, §6 step 10 — "the exit ramp"). Uses Shopify's native
+  `customer` form with the standard `contact[tags]=newsletter` convention —
+  no app, no external service, works out of the box on every store.
+
+  Submits as a real (non-AJAX) POST: success/error come from Shopify's own
+  `form.posted_successfully?` / `form.errors`, resolved server-side after the
+  page reloads. Spec describes a same-page "300ms crossfade" swap instead;
+  that would need optimistically showing success before the server confirms
+  anything actually happened, which risks telling a visitor they're
+  subscribed when a real validation error occurred. Showing the confirmed
+  success/error state after reload is less flashy but never wrong — the
+  right trade favoring correctness spec doesn't have a stated way around.
+{%- endcomment -%}
+<section class="section section--rhythm section--bg-card">
+  <div class="container newsletter">
+    <div class="newsletter__content" data-scroll-reveal>
+      {%- if section.settings.kicker != blank -%}
+        <span class="kicker" data-scroll-reveal-child>{{ section.settings.kicker }}</span>
+      {%- endif -%}
+      <h2 class="newsletter__heading" data-scroll-reveal-child>{{ section.settings.heading }}</h2>
+
+      {%- form 'customer', id: 'NewsletterForm', class: 'newsletter__form' -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+
+        {%- if form.posted_successfully? -%}
+          <div class="newsletter__success" data-scroll-reveal-child>
+            {% render 'icon', name: 'check', size: 20 %}
+            <span>{{ 'sections.newsletter.success' | t }}</span>
+          </div>
+        {%- else -%}
+          <div class="newsletter__field-row" data-scroll-reveal-child>
+            <label class="visually-hidden" for="NewsletterForm-email">{{ 'sections.newsletter.email_label' | t }}</label>
+            <input
+              type="email"
+              id="NewsletterForm-email"
+              name="contact[email]"
+              class="newsletter__input"
+              placeholder="{{ 'sections.newsletter.email_placeholder' | t }}"
+              autocomplete="email"
+              required
+              {% if form.errors %}aria-invalid="true" aria-describedby="NewsletterForm-error"{% endif %}
+            >
+            <button type="submit" class="btn btn--primary newsletter__submit">
+              <span class="btn__label">{{ 'sections.newsletter.submit' | t }}</span>
+            </button>
+          </div>
+          {%- if form.errors -%}
+            <p class="field__message field__message--error" id="NewsletterForm-error" data-scroll-reveal-child>
+              {% render 'icon', name: 'circle-alert', size: 16 %}{{ form.errors.translated_default_message }}
+            </p>
+          {%- endif -%}
+          <p class="newsletter__privacy text-small" data-scroll-reveal-child>{{ section.settings.privacy_text }}</p>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "10% off your first order"
+    },
+    {
+      "type": "text",
+      "id": "privacy_text",
+      "label": "Privacy note",
+      "default": "By subscribing you agree to receive marketing emails. Unsubscribe anytime."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter"
+    }
+  ]
+}
+{% endschema %}

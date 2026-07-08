@@ -1,0 +1,125 @@
+{%- comment -%}
+  Testimonials (spec §5.5): single centered quote crossfading between blocks
+  with dot navigation, or a static 3-up quiet-card alternative — merchant
+  picks per instance since both are legitimate, equally-supported layouts,
+  not a progressive enhancement of each other.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container">
+    {%- if section.settings.layout == 'single' -%}
+      <testimonial-carousel class="testimonials testimonials--single" data-autoplay="8000">
+        <div class="testimonials__track">
+          {%- for block in section.blocks -%}
+            <blockquote class="testimonial{% if forloop.first %} is-active{% endif %}" {{ block.shopify_attributes }}>
+              {%- if block.settings.rating > 0 -%}
+                {% render 'star-rating', rating: block.settings.rating %}
+              {%- endif -%}
+              <p class="testimonial__quote">{{ block.settings.quote }}</p>
+              <cite class="testimonial__author">
+                {{ block.settings.name }}{%- if block.settings.role != blank -%}<span class="testimonial__role caption">{{ block.settings.role }}</span>{%- endif -%}
+              </cite>
+            </blockquote>
+          {%- endfor -%}
+        </div>
+        {%- if section.blocks.size > 1 -%}
+          <div class="testimonials__dots" role="tablist" aria-label="{{ 'sections.testimonials.navigation' | t }}">
+            {%- for block in section.blocks -%}
+              <button
+                type="button"
+                class="testimonials__dot{% if forloop.first %} is-active{% endif %}"
+                data-testimonial-dot="{{ forloop.index0 }}"
+                role="tab"
+                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                aria-label="{{ 'sections.testimonials.go_to' | t: index: forloop.index }}"
+              ></button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </testimonial-carousel>
+    {%- else -%}
+      <div class="grid grid-cols-3" data-scroll-reveal>
+        {%- for block in section.blocks -%}
+          <div class="testimonial-card card card--padded" data-scroll-reveal-child {{ block.shopify_attributes }}>
+            {%- if block.settings.rating > 0 -%}
+              {% render 'star-rating', rating: block.settings.rating %}
+            {%- endif -%}
+            <p class="testimonial-card__quote">{{ block.settings.quote }}</p>
+            <cite class="testimonial__author">
+              {{ block.settings.name }}{%- if block.settings.role != blank -%}<span class="testimonial__role caption">{{ block.settings.role }}</span>{%- endif -%}
+            </cite>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "single", "label": "Single, rotating" },
+        { "value": "grid", "label": "3-up grid" }
+      ],
+      "default": "single"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "Quote",
+          "default": "The best purchase I've made all year — it feels like it was made for me."
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name",
+          "default": "A. Rivera"
+        },
+        {
+          "type": "text",
+          "id": "role",
+          "label": "Role / location"
+        },
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Rating",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "default": 5,
+          "info": "0 hides the stars."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Testimonials",
+      "blocks": [{ "type": "testimonial" }, { "type": "testimonial" }, { "type": "testimonial" }]
+    }
+  ]
+}
+{% endschema %}

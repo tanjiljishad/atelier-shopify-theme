@@ -1,0 +1,92 @@
+{%- comment -%}
+  FAQ preview (spec §5.5: "accordion in 68ch column"). Built entirely on the
+  <accordion-group>/accordion-item.liquid primitives from Milestone 2 — no
+  new accordion behavior, just question/answer blocks feeding the existing
+  component.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container">
+    {% render 'section-heading', kicker: section.settings.kicker, heading: section.settings.heading, align: 'center' %}
+
+    {%- if section.blocks.size > 0 -%}
+      <accordion-group class="faq__list mt-8" style="max-width: 68ch; margin-inline: auto;">
+        {%- for block in section.blocks -%}
+          {% render 'accordion-item', title: block.settings.question, content: block.settings.answer, id: block.id %}
+        {%- endfor -%}
+      </accordion-group>
+    {%- endif -%}
+
+    {%- if section.settings.cta_text != blank and section.settings.cta_url != blank -%}
+      <p class="faq__cta text-center mt-6">
+        <a href="{{ section.settings.cta_url }}" class="btn btn--ghost">{{ section.settings.cta_text }}</a>
+      </p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Frequently asked questions"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Link text",
+      "default": "View all FAQs"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Link"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "What's your return policy?"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Free returns within 30 days of delivery.</p>"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [{ "type": "question" }, { "type": "question" }, { "type": "question" }]
+    }
+  ]
+}
+{% endschema %}

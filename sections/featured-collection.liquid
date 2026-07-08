@@ -1,37 +1,44 @@
-<section class="section">
-  <div class="page-width">
-    <div class="section__header">
-      <h2>{{ section.settings.heading }}</h2>
-      {% if section.settings.collection != blank %}
-        <a href="{{ section.settings.collection.url }}">View all</a>
-      {% endif %}
-    </div>
+{%- comment -%}
+  Best sellers (spec §6, step 3 — "social proof through curation"). A grid of
+  snippets/product-card.liquid, which already includes quick add, wishlist/
+  compare hooks, and labels — none of that is reimplemented here.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide">
+    {% render 'section-heading',
+      kicker: section.settings.kicker,
+      heading: section.settings.heading,
+      cta_text: section.settings.cta_text,
+      cta_url: section.settings.collection.url,
+      align: 'left'
+    %}
 
-    <div class="product-grid">
-      {% if section.settings.collection != blank %}
-        {% for product in section.settings.collection.products limit: section.settings.products_to_show %}
-          {% render 'product-card', product: product %}
-        {% endfor %}
-      {% else %}
-        {% for product in collections.all.products limit: section.settings.products_to_show %}
-          {% render 'product-card', product: product %}
-        {% else %}
-          <p>Add products to your store to populate this section.</p>
-        {% endfor %}
-      {% endif %}
+    <div class="grid grid-cols-4 mt-8" data-scroll-reveal>
+      {%- if section.settings.collection != blank -%}
+        {%- for product in section.settings.collection.products limit: section.settings.products_to_show -%}
+          <div data-scroll-reveal-child>
+            {% render 'product-card', product: product, priority: forloop.index0 == 0 %}
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
     </div>
   </div>
 </section>
 
 {% schema %}
 {
-  "name": "Featured collection",
+  "name": "Best sellers",
   "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
     {
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "Featured products"
+      "default": "Best sellers"
     },
     {
       "type": "collection",
@@ -41,16 +48,32 @@
     {
       "type": "range",
       "id": "products_to_show",
-      "min": 2,
-      "max": 12,
-      "step": 1,
       "label": "Products to show",
+      "min": 4,
+      "max": 8,
+      "step": 4,
       "default": 4
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "\"View all\" link text",
+      "default": "View all"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
     }
   ],
   "presets": [
     {
-      "name": "Featured collection"
+      "name": "Best sellers"
     }
   ]
 }

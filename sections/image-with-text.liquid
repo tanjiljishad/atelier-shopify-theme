@@ -1,0 +1,122 @@
+{%- comment -%}
+  Image with text (spec §5.5): 6/6 or 7/5 split, 96px gap, text vertically
+  centered, max 44ch. "Alternating direction on repeat" is implemented via
+  `section.index` parity when image_position is "auto" (the default) — each
+  additional instance a merchant adds to the page automatically mirrors the
+  previous one; an explicit left/right override is still available for when
+  a merchant wants to break the pattern deliberately.
+{%- endcomment -%}
+{%- liquid
+  assign position = section.settings.image_position
+  if position == 'auto'
+    assign index_parity = section.index | modulo: 2
+    if index_parity == 0
+      assign position = 'right'
+    else
+      assign position = 'left'
+    endif
+  endif
+-%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container image-with-text image-with-text--{{ section.settings.column_ratio }} image-with-text--image-{{ position }}">
+    <div class="image-with-text__media aspect-ratio" style="aspect-ratio: {{ section.settings.image_ratio }};">
+      {% render 'responsive-image', image: section.settings.image, sizes: '(min-width: 750px) 50vw, 100vw', wrap: false, class: 'image-with-text__image' %}
+    </div>
+    <div class="image-with-text__text">
+      {% render 'section-heading',
+        kicker: section.settings.kicker,
+        heading: section.settings.heading,
+        body: section.settings.body,
+        cta_text: section.settings.button_label,
+        cta_url: section.settings.button_link,
+        align: 'left'
+      %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Image with text",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "4/5", "label": "Portrait (4:5)" },
+        { "value": "1/1", "label": "Square (1:1)" },
+        { "value": "3/2", "label": "Landscape (3:2)" }
+      ],
+      "default": "1/1"
+    },
+    {
+      "type": "select",
+      "id": "column_ratio",
+      "label": "Column split",
+      "options": [
+        { "value": "6-6", "label": "Even (6/6)" },
+        { "value": "7-5", "label": "Image-led (7/5)" }
+      ],
+      "default": "6-6"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "auto", "label": "Auto (alternates each time this section repeats)" },
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Made to last, not to trend"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image with text"
+    }
+  ]
+}
+{% endschema %}

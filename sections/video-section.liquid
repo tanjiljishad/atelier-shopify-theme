@@ -1,0 +1,81 @@
+{%- comment -%}
+  Video / brand story (spec §5.5, §6 step 7 — "deepens justification for
+  premium pricing right before the ask"). Unlike the hero's ambient muted
+  loop, this video IS the content: click-to-play with real controls, poster-
+  first so nothing downloads until a visitor actually wants to watch it.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide">
+    {% render 'section-heading', kicker: section.settings.kicker, heading: section.settings.heading, body: section.settings.body, align: 'center' %}
+
+    <div class="video-section__player aspect-ratio mt-8" style="aspect-ratio: 16/9;" data-video-player>
+      <button type="button" class="video-section__poster" data-video-play aria-label="{{ 'sections.video.play' | t }}">
+        {% render 'responsive-image', image: section.settings.poster, sizes: '100vw', wrap: false, class: 'video-section__poster-image' %}
+        <span class="video-section__play-icon">{% render 'icon', name: 'play', size: 28 %}</span>
+      </button>
+      <video
+        class="video-section__video"
+        data-video-element
+        controls
+        playsinline
+        preload="none"
+        hidden
+        {% if section.settings.poster %}poster="{{ section.settings.poster | image_url: width: 1920 }}"{% endif %}
+      >
+        {%- for source in section.settings.video.sources -%}
+          <source src="{{ source.url }}" type="{{ source.mime_type }}">
+        {%- endfor -%}
+      </video>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Video",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Our story"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Video"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster",
+      "label": "Poster image",
+      "info": "Shown until a visitor presses play — keeps the video itself out of the initial page load."
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "card"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video"
+    }
+  ]
+}
+{% endschema %}

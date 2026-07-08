@@ -1,0 +1,84 @@
+{%- comment -%}
+  Featured collections (spec §6, step 2 — "immediate wayfinding; most
+  visitors are category-driven, so navigation choices appear before
+  persuasion"). Each block is one collection, rendered through the existing
+  snippets/collection-card.liquid — no card markup duplicated here.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide">
+    {% render 'section-heading',
+      kicker: section.settings.kicker,
+      heading: section.settings.heading,
+      align: 'center'
+    %}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="grid grid-cols-3 featured-collections__grid mt-8" data-scroll-reveal>
+        {%- for block in section.blocks -%}
+          <div data-scroll-reveal-child {{ block.shopify_attributes }}>
+            {% render 'collection-card', collection: block.settings.collection, mode: section.settings.card_mode %}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured collections",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop by category"
+    },
+    {
+      "type": "select",
+      "id": "card_mode",
+      "label": "Card style",
+      "options": [
+        { "value": "standard", "label": "Standard" },
+        { "value": "overlay", "label": "Overlay" }
+      ],
+      "default": "overlay"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Featured collections",
+      "blocks": [{ "type": "collection" }, { "type": "collection" }, { "type": "collection" }]
+    }
+  ]
+}
+{% endschema %}

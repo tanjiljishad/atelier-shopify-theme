@@ -23,6 +23,8 @@
     "menu": "Menu",
     "close": "Close",
     "view_all": "View all",
+    "previous": "Previous",
+    "next": "Next",
     "quantity": {
       "label": "Quantity",
       "decrease": "Decrease quantity",
@@ -61,5 +63,23 @@
   },
   "collections": {
     "product_count": "products"
+  },
+  "sections": {
+    "hero": {
+      "pause_video": "Pause video"
+    },
+    "testimonials": {
+      "navigation": "Testimonials",
+      "go_to": "Go to testimonial {{ index }}"
+    },
+    "video": {
+      "play": "Play video"
+    },
+    "newsletter": {
+      "success": "Thanks for subscribing",
+      "email_label": "Email address",
+      "email_placeholder": "Your email",
+      "submit": "Subscribe"
+    }
   }
 }

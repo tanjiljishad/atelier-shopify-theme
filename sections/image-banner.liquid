@@ -1,16 +1,23 @@
+{%- comment -%}
+  Image banner (spec §5.5, §6 step 4 — "visual palate cleanser; resets
+  attention between two product-dense zones"). Full-bleed, fixed 480px per
+  spec (not a merchant setting — this is a normative layout value, matching
+  "match spacing exactly"). Text borrows Scheme 2 for guaranteed contrast
+  against arbitrary photography, same technique as the hero/header/collection
+  card overlay.
+{%- endcomment -%}
 <section class="image-banner">
-  {% if section.settings.image != blank %}
-    {{ section.settings.image | image_url: width: 2400 | image_tag: class: 'image-banner__image', widths: '720, 1200, 1800, 2400', sizes: '100vw' }}
-  {% endif %}
-
-  <div class="page-width image-banner__content">
-    <h1>{{ section.settings.heading }}</h1>
-    {% if section.settings.text != blank %}
-      <p>{{ section.settings.text }}</p>
-    {% endif %}
-    {% if section.settings.button_label != blank %}
-      <a class="button" href="{{ section.settings.button_link }}">{{ section.settings.button_label }}</a>
-    {% endif %}
+  <div class="image-banner__media"{% if section.settings.enable_parallax %} data-parallax{% endif %}>
+    {% render 'responsive-image', image: section.settings.image, sizes: '100vw', wrap: false, class: 'image-banner__image' %}
+  </div>
+  <div class="image-banner__scrim" aria-hidden="true"></div>
+  <div class="container image-banner__content color-scheme-scheme-2">
+    <div data-scroll-reveal>
+      <h2 class="image-banner__heading" data-scroll-reveal-child>{{ section.settings.heading }}</h2>
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link }}" class="btn btn--ghost image-banner__cta" data-scroll-reveal-child>{{ section.settings.button_label }}</a>
+      {%- endif -%}
+    </div>
   </div>
 </section>
 
@@ -27,13 +34,7 @@
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "Ateller"
-    },
-    {
-      "type": "textarea",
-      "id": "text",
-      "label": "Text",
-      "default": "A considered storefront for your next collection."
+      "default": "Considered, not curated"
     },
     {
       "type": "text",
@@ -45,6 +46,13 @@
       "type": "url",
       "id": "button_link",
       "label": "Button link"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_parallax",
+      "label": "Parallax on scroll",
+      "default": true,
+      "info": "Desktop only; automatically disabled for reduced-motion or performance mode."
     }
   ],
   "presets": [

@@ -77,23 +77,7 @@
 
     {%- if settings.card_quick_add_enabled -%}
       <div class="product-card__quick-add">
-        {%- if product.available == false -%}
-          <span class="btn btn--secondary product-card__quick-add-button" aria-disabled="true">
-            <span class="btn__label">{{ 'products.product.sold_out' | t }}</span>
-          </span>
-        {%- elsif product.has_only_default_variant -%}
-          <quick-add-button data-variant-id="{{ current_variant.id }}" data-added-label="{{ 'products.product.added' | t }}" data-error-label="{{ 'products.product.add_error' | t }}">
-            <button type="button" class="btn btn--primary product-card__quick-add-button" aria-label="{{ 'products.product.quick_add' | t }} — {{ product.title | escape }}">
-              <span class="btn__label">{{ 'products.product.quick_add' | t }} — {{ current_variant.price | money }}</span>
-              <span class="product-card__quick-add-icon">{% render 'icon', name: 'plus', size: 18 %}</span>
-            </button>
-          </quick-add-button>
-        {%- else -%}
-          <a href="{{ product.url }}" class="btn btn--secondary product-card__quick-add-button">
-            <span class="btn__label">{{ 'products.product.choose_options' | t }}</span>
-            <span class="product-card__quick-add-icon">{% render 'icon', name: 'plus', size: 18 %}</span>
-          </a>
-        {%- endif -%}
+        {% render 'product-form-button', product: product, compact: true %}
       </div>
     {%- endif -%}
   </div>
@@ -107,8 +91,8 @@
 
     {%- if settings.card_show_rating and rating_value != blank -%}
       <div class="product-card__rating" aria-label="{{ 'products.product.rating' | t: rating: rating_value, count: rating_count }}">
-        {% render 'icon', name: 'star', size: 14, class: 'icon--filled' %}
-        <span class="text-small" aria-hidden="true">{{ rating_value }} ({{ rating_count }})</span>
+        {% render 'star-rating', rating: rating_value, size: 14 %}
+        <span class="text-small" aria-hidden="true">({{ rating_count }})</span>
       </div>
     {%- endif -%}
 

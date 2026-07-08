@@ -77,3 +77,16 @@ if (document.querySelector('[data-quick-view-trigger]')) {
 }
 if (document.querySelector('[data-wishlist-toggle]')) import('./wishlist.js');
 if (document.querySelector('[data-compare-toggle]')) import('./compare.js');
+if (document.querySelector('[data-hero-video]')) {
+  import('./hero.js').then(({ initHeroVideoControls }) => initHeroVideoControls());
+}
+if (document.querySelector('[data-parallax]')) {
+  import('./parallax.js').then(({ initParallax }) => initParallax());
+}
+if (document.querySelector('[data-slider-track]')) {
+  import('./product-slider.js').then(({ initProductSliders }) => initProductSliders());
+}
+if (document.querySelector('testimonial-carousel')) import('./testimonials.js');
+if (document.querySelector('[data-video-player]')) {
+  import('./video-section.js').then(({ initVideoSections }) => initVideoSections());
+}

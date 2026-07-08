@@ -1,0 +1,41 @@
+{%- comment -%}
+  Shared add-to-cart control: sold out / single-variant quick add (real AJAX
+  cart, via <quick-add-button> — assets/quick-add.js) / multi-variant "choose
+  options" link to the PDP. Used by both product-card.liquid and
+  featured-product.liquid so this three-way branch exists in exactly one
+  place rather than being copied between them.
+
+  Accepts:
+  - product (required)
+  - compact: bool, default false. true adds product-card's small mobile
+    "+"-chip treatment (.product-card__quick-add-icon / .product-card__quick-add-button
+    in theme.css); featured-product renders at full size and leaves this off.
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign extra_class = ''
+  if compact
+    assign extra_class = ' product-card__quick-add-button'
+  endif
+-%}
+{%- if product.available == false -%}
+  <span class="btn btn--secondary product-form-button{{ extra_class }}" aria-disabled="true">
+    <span class="btn__label">{{ 'products.product.sold_out' | t }}</span>
+  </span>
+{%- elsif product.has_only_default_variant -%}
+  <quick-add-button data-variant-id="{{ current_variant.id }}" data-added-label="{{ 'products.product.added' | t }}" data-error-label="{{ 'products.product.add_error' | t }}">
+    <button type="button" class="btn btn--primary product-form-button{{ extra_class }}" aria-label="{{ 'products.product.quick_add' | t }} — {{ product.title | escape }}">
+      <span class="btn__label">{{ 'products.product.quick_add' | t }} — {{ current_variant.price | money }}</span>
+      {%- if compact -%}
+        <span class="product-card__quick-add-icon">{% render 'icon', name: 'plus', size: 18 %}</span>
+      {%- endif -%}
+    </button>
+  </quick-add-button>
+{%- else -%}
+  <a href="{{ product.url }}" class="btn btn--secondary product-form-button{{ extra_class }}">
+    <span class="btn__label">{{ 'products.product.choose_options' | t }}</span>
+    {%- if compact -%}
+      <span class="product-card__quick-add-icon">{% render 'icon', name: 'plus', size: 18 %}</span>
+    {%- endif -%}
+  </a>
+{%- endif -%}

@@ -1,0 +1,18 @@
+{%- comment -%}
+  Renders 5 stars, filled up to `rating` (rounds to the nearest whole star —
+  spec's "hairline stars" are thin-stroke, never a fractional-fill visual).
+  Accepts: rating (0–5), size (default 14).
+{%- endcomment -%}
+{%- liquid
+  assign star_size = size | default: 14
+  assign rounded_rating = rating | round
+-%}
+<div class="star-rating" aria-hidden="true">
+  {%- for i in (1..5) -%}
+    {%- if i <= rounded_rating -%}
+      {% render 'icon', name: 'star', size: star_size, class: 'icon--filled' %}
+    {%- else -%}
+      {% render 'icon', name: 'star', size: star_size %}
+    {%- endif -%}
+  {%- endfor -%}
+</div>

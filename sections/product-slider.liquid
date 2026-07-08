@@ -1,0 +1,83 @@
+{%- comment -%}
+  Product slider (spec §5.5, §6 step 5 — "New arrivals... freshness signal;
+  slider caps vertical cost"). Native horizontal scroll + CSS scroll-snap
+  carries the actual scrolling/touch behavior for free; assets/product-slider.js
+  only wires the two arrow buttons and the progress bar fill, both of which
+  need JS since neither has a CSS-only equivalent.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide">
+    <div class="product-slider__header">
+      {% render 'section-heading', kicker: section.settings.kicker, heading: section.settings.heading, align: 'left' %}
+      <div class="product-slider__arrows">
+        <button type="button" class="btn-icon" data-slider-prev aria-label="{{ 'general.previous' | t }}">
+          {% render 'icon', name: 'chevron-down', size: 18, class: 'icon--rotate-90' %}
+        </button>
+        <button type="button" class="btn-icon" data-slider-next aria-label="{{ 'general.next' | t }}">
+          {% render 'icon', name: 'chevron-down', size: 18, class: 'icon--rotate-neg90' %}
+        </button>
+      </div>
+    </div>
+
+    {%- if section.settings.collection != blank -%}
+      <div class="product-slider__track" data-slider-track tabindex="0" role="region" aria-label="{{ section.settings.heading | escape }}">
+        {%- for product in section.settings.collection.products limit: section.settings.products_to_show -%}
+          <div class="product-slider__item">
+            {% render 'product-card', product: product %}
+          </div>
+        {%- endfor -%}
+      </div>
+      <div class="product-slider__progress" aria-hidden="true">
+        <div class="product-slider__progress-fill" data-slider-progress></div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Product slider",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "New arrivals"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product slider"
+    }
+  ]
+}
+{% endschema %}

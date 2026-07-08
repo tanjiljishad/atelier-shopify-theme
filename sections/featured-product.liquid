@@ -1,0 +1,96 @@
+{%- comment -%}
+  Featured product — single-product spotlight. Deliberately not a product
+  page: no gallery, no accordions, just enough to spotlight one item and get
+  a visitor either straight into the cart (single variant) or onto the real
+  PDP (multi-variant) — reuses variant-picker/price/inventory-indicator/
+  product-form-button exactly as built in Milestone 4, nothing reimplemented.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide featured-product">
+    <div class="featured-product__media aspect-ratio" style="aspect-ratio: {{ section.settings.image_ratio }};">
+      {% render 'responsive-image', image: section.settings.product.featured_image, sizes: '(min-width: 750px) 50vw, 100vw', wrap: false, class: 'featured-product__image' %}
+    </div>
+
+    <div class="featured-product__info" data-scroll-reveal>
+      {%- if section.settings.show_vendor and section.settings.product.vendor != blank -%}
+        <span class="caption" data-scroll-reveal-child>{{ section.settings.product.vendor }}</span>
+      {%- endif -%}
+
+      <h2 class="featured-product__title" data-scroll-reveal-child>{{ section.settings.product.title }}</h2>
+
+      <div data-scroll-reveal-child>
+        {% render 'price', product: section.settings.product, size: 'pdp' %}
+      </div>
+
+      {%- if section.settings.product != blank -%}
+        <div data-scroll-reveal-child>
+          {% render 'inventory-indicator', product: section.settings.product %}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_description and section.settings.product.description != blank -%}
+        <div class="prose featured-product__description" data-scroll-reveal-child>{{ section.settings.product.description }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.product.has_only_default_variant == false -%}
+        <div data-scroll-reveal-child>
+          {% render 'variant-picker', product: section.settings.product %}
+        </div>
+      {%- endif -%}
+
+      <div class="featured-product__form" data-scroll-reveal-child>
+        {% render 'product-form-button', product: section.settings.product %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured product",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "4/5", "label": "Portrait (4:5)" },
+        { "value": "1/1", "label": "Square (1:1)" }
+      ],
+      "default": "4/5"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show description",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured product"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,84 @@
+{%- comment -%}
+  Instagram / social feed placeholder (spec §5.5, §6 step 9 — "community
+  proof + UGC texture"). Explicitly a placeholder per this milestone's scope:
+  merchant-uploaded images in a square grid, each optionally linking out to
+  the real post — no live Instagram API integration (that needs an app/
+  access token, out of scope here).
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide">
+    {%- if section.settings.handle != blank -%}
+      <a href="{{ section.settings.handle_url }}" class="instagram-feed__handle kicker">@{{ section.settings.handle }}</a>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="instagram-feed__grid mt-5" data-scroll-reveal>
+        {%- for block in section.blocks -%}
+          <a
+            href="{{ block.settings.link | default: '#' }}"
+            class="instagram-feed__item aspect-ratio"
+            data-scroll-reveal-child
+            {{ block.shopify_attributes }}
+          >
+            {% render 'responsive-image', image: block.settings.image, sizes: '(min-width: 750px) 16vw, 33vw', wrap: false, class: 'instagram-feed__image' %}
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Instagram feed",
+  "settings": [
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle",
+      "info": "Without the @ symbol.",
+      "default": "atelier"
+    },
+    {
+      "type": "url",
+      "id": "handle_url",
+      "label": "Link"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link to post"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Instagram feed",
+      "blocks": [{ "type": "image" }, { "type": "image" }, { "type": "image" }, { "type": "image" }]
+    }
+  ]
+}
+{% endschema %}

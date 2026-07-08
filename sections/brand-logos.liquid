@@ -1,0 +1,65 @@
+{%- comment -%}
+  Brand logos (spec §5.5, §6 step 8 — "borrowed authority, low height").
+  Grayscale at 45% opacity, full color on hover — one row, wraps on mobile.
+{%- endcomment -%}
+<section class="section section--tight{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide">
+    {%- if section.settings.kicker != blank -%}
+      <span class="kicker brand-logos__kicker">{{ section.settings.kicker }}</span>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="brand-logos__row" data-scroll-reveal>
+        {%- for block in section.blocks -%}
+          <div class="brand-logos__item" data-scroll-reveal-child {{ block.shopify_attributes }}>
+            {% render 'responsive-image', image: block.settings.logo, sizes: '120px', wrap: false, class: 'brand-logos__image' %}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Brand logos",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker",
+      "default": "As seen in"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Brand logos",
+      "blocks": [{ "type": "logo" }, { "type": "logo" }, { "type": "logo" }, { "type": "logo" }]
+    }
+  ]
+}
+{% endschema %}

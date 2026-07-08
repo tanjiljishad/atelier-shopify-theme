@@ -1,0 +1,67 @@
+{%- comment -%}
+  Final call to action — a simple centered closing band. Reuses
+  snippets/section-heading.liquid entirely for its text/CTA; the only thing
+  this section owns is the wrapper and background.
+{%- endcomment -%}
+<section class="section section--rhythm section--before-footer{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container">
+    {% render 'section-heading',
+      kicker: section.settings.kicker,
+      heading: section.settings.heading,
+      body: section.settings.body,
+      cta_text: section.settings.button_label,
+      cta_url: section.settings.button_link,
+      align: 'center'
+    %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Call to action",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Ready to find your next favorite piece?"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop all"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Call to action"
+    }
+  ]
+}
+{% endschema %}

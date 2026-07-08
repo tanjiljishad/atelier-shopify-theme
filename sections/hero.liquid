@@ -1,0 +1,217 @@
+{%- comment -%}
+  Hero (spec §5.5): full-bleed image/video with scrim + kicker/H1/subline/CTAs,
+  or a split 50/50 image | text-panel layout. This is the one homepage
+  section allowed to render an H1 (spec's heading hierarchy expects exactly
+  one per page) — every other homepage section defaults to H2 via
+  snippets/section-heading.liquid.
+
+  Full-bleed text always sits on the borrowed Scheme 2 token set for
+  guaranteed contrast against arbitrary photography (same technique as the
+  transparent header/collection-card overlay, Milestones 3–4) — not merchant-
+  configurable, since it's a contrast guarantee, not a brand choice. The
+  split layout's text panel isn't on a photo, so it uses the section's own
+  color_scheme setting normally.
+
+  Ken-Burns and the scroll-reveal on text both respect reduced-motion/
+  performance-mode automatically: Ken-Burns is gated in assets/hero.js via
+  motion.js's prefersReducedMotion()/performanceModeEnabled(), and the text
+  block uses the same [data-scroll-reveal] contract as every other section.
+{%- endcomment -%}
+{%- liquid
+  assign is_video = false
+  if section.settings.media_type == 'video' and section.settings.video
+    assign is_video = true
+  endif
+  assign poster_image = section.settings.video.preview_image | default: section.settings.image
+  assign hero_classes = 'hero hero--' | append: section.settings.layout
+  if section.settings.enable_ken_burns and is_video == false
+    assign hero_classes = hero_classes | append: ' hero--ken-burns'
+  endif
+-%}
+<section class="{{ hero_classes }}" data-hero>
+  {%- if section.settings.layout == 'split' -%}
+    <div class="hero__split-media aspect-ratio">
+      {% render 'responsive-image', image: section.settings.image, sizes: '(min-width: 750px) 50vw, 100vw', priority: true, wrap: false, class: 'hero__image' %}
+    </div>
+    <div class="hero__split-content color-scheme-{{ section.settings.color_scheme }}">
+      <div class="hero__text" data-scroll-reveal>
+        {%- if section.settings.kicker != blank -%}
+          <span class="kicker" data-scroll-reveal-child>{{ section.settings.kicker }}</span>
+        {%- endif -%}
+        <h1 class="hero__heading" data-scroll-reveal-child>{{ section.settings.heading }}</h1>
+        {%- if section.settings.subline != blank -%}
+          <div class="hero__subline text-body-large" data-scroll-reveal-child>{{ section.settings.subline }}</div>
+        {%- endif -%}
+        {%- if section.blocks.size > 0 -%}
+          <div class="hero__actions" data-scroll-reveal-child>
+            {%- for block in section.blocks -%}
+              <a href="{{ block.settings.url }}" class="btn btn--{{ block.settings.style }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</a>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- else -%}
+    <div class="hero__media">
+      {%- if is_video -%}
+        <video class="hero__video" autoplay muted loop playsinline data-hero-video poster="{{ poster_image | image_url: width: 1920 }}">
+          {%- for source in section.settings.video.sources -%}
+            <source src="{{ source.url }}" type="{{ source.mime_type }}">
+          {%- endfor -%}
+        </video>
+        <button type="button" class="hero__video-toggle btn-icon" data-hero-video-toggle aria-label="{{ 'sections.hero.pause_video' | t }}" aria-pressed="false">
+          {% render 'icon', name: 'pause', size: 18 %}
+        </button>
+      {%- else -%}
+        {% render 'responsive-image', image: section.settings.image, sizes: '100vw', priority: true, wrap: false, class: 'hero__image' %}
+      {%- endif -%}
+      <div class="hero__scrim" aria-hidden="true"></div>
+    </div>
+
+    <div class="container container--wide hero__content-grid">
+      <div class="hero__content hero__content--{{ section.settings.text_position }} color-scheme-scheme-2">
+        <div class="hero__text" data-scroll-reveal>
+          {%- if section.settings.kicker != blank -%}
+            <span class="kicker" data-scroll-reveal-child>{{ section.settings.kicker }}</span>
+          {%- endif -%}
+          <h1 class="hero__heading" data-scroll-reveal-child>{{ section.settings.heading }}</h1>
+          {%- if section.settings.subline != blank -%}
+            <div class="hero__subline text-body-large" data-scroll-reveal-child>{{ section.settings.subline }}</div>
+          {%- endif -%}
+          {%- if section.blocks.size > 0 -%}
+            <div class="hero__actions" data-scroll-reveal-child>
+              {%- for block in section.blocks -%}
+                <a href="{{ block.settings.url }}" class="btn btn--{{ block.settings.style }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</a>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "full", "label": "Full-bleed" },
+        { "value": "split", "label": "Split — image + text panel" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "image",
+      "info": "Video is only available with the full-bleed layout."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Also used as the video's poster frame if no preview image is set on the video itself."
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Video"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_ken_burns",
+      "label": "Slow zoom on load",
+      "default": true,
+      "info": "A single, subtle 1.03→1 scale over 8 seconds — never repeats. Images only."
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Luxury is the absence of noise"
+    },
+    {
+      "type": "textarea",
+      "id": "subline",
+      "label": "Subline"
+    },
+    {
+      "type": "select",
+      "id": "text_position",
+      "label": "Text position",
+      "info": "Full-bleed layout only.",
+      "options": [
+        { "value": "top-left", "label": "Top left" },
+        { "value": "top-center", "label": "Top center" },
+        { "value": "top-right", "label": "Top right" },
+        { "value": "middle-left", "label": "Middle left" },
+        { "value": "middle-center", "label": "Middle center" },
+        { "value": "middle-right", "label": "Middle right" },
+        { "value": "bottom-left", "label": "Bottom left" },
+        { "value": "bottom-center", "label": "Bottom center" },
+        { "value": "bottom-right", "label": "Bottom right" }
+      ],
+      "default": "middle-left"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "info": "Split layout's text panel only — the full-bleed layout always uses guaranteed-contrast text over its scrim.",
+      "default": "scheme-1"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "button",
+      "name": "Button",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Label",
+          "default": "Shop new arrivals"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Link"
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "options": [
+            { "value": "primary", "label": "Primary" },
+            { "value": "outline", "label": "Outline" },
+            { "value": "ghost", "label": "Ghost" }
+          ],
+          "default": "primary"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 2,
+  "presets": [
+    {
+      "name": "Hero",
+      "blocks": [{ "type": "button" }]
+    }
+  ]
+}
+{% endschema %}

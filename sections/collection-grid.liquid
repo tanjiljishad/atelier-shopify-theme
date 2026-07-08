@@ -1,0 +1,95 @@
+{%- comment -%}
+  Collection grid (spec §5.5): 2–4 columns of collection cards, or an
+  "editorial" variant — one 2×2 feature card + smaller ones filling in around
+  it, via CSS grid spanning rather than a different markup structure.
+{%- endcomment -%}
+<section class="section section--rhythm{% if section.settings.section_background == 'card' %} section--bg-card{% endif %}">
+  <div class="container container--wide">
+    {% render 'section-heading', kicker: section.settings.kicker, heading: section.settings.heading, align: 'center' %}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="collection-grid collection-grid--{{ section.settings.layout }} collection-grid--cols-{{ section.settings.columns }} mt-8" data-scroll-reveal>
+        {%- for block in section.blocks -%}
+          <div
+            class="collection-grid__item{% if section.settings.layout == 'editorial' and forloop.index == 1 %} collection-grid__item--feature{% endif %}"
+            data-scroll-reveal-child
+            {{ block.shopify_attributes }}
+          >
+            {% render 'collection-card', collection: block.settings.collection, mode: 'overlay' %}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection grid",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Explore the collection"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "standard", "label": "Standard grid" },
+        { "value": "editorial", "label": "Editorial (large feature + smalls)" }
+      ],
+      "default": "standard"
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Columns",
+      "info": "Standard layout only — editorial layout sets its own grid.",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "select",
+      "id": "section_background",
+      "label": "Background",
+      "options": [
+        { "value": "background", "label": "Default" },
+        { "value": "card", "label": "Card tint" }
+      ],
+      "default": "background"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Collection grid",
+      "blocks": [{ "type": "collection" }, { "type": "collection" }, { "type": "collection" }]
+    }
+  ]
+}
+{% endschema %}

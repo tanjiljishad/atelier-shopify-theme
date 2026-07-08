@@ -1,19 +1,98 @@
 {
   "sections": {
-    "banner": {
-      "type": "image-banner",
+    "hero": {
+      "type": "hero",
       "settings": {
-        "heading": "Ateller",
-        "text": "A considered storefront for your next collection."
+        "layout": "full",
+        "media_type": "image",
+        "kicker": "New season",
+        "heading": "Luxury is the absence of noise",
+        "subline": "Considered pieces, quietly made.",
+        "text_position": "middle-left",
+        "enable_ken_burns": true,
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "button": {
+          "type": "button",
+          "settings": {
+            "text": "Shop new arrivals",
+            "style": "primary"
+          }
+        }
+      },
+      "block_order": ["button"]
+    },
+    "featured_collections": {
+      "type": "featured-collections",
+      "settings": {
+        "heading": "Shop by category",
+        "card_mode": "overlay"
       }
     },
-    "featured_collection": {
+    "best_sellers": {
       "type": "featured-collection",
       "settings": {
-        "heading": "Featured products",
+        "heading": "Best sellers",
         "products_to_show": 4
+      }
+    },
+    "image_banner": {
+      "type": "image-banner",
+      "settings": {
+        "heading": "Considered, not curated",
+        "button_label": "Shop now"
+      }
+    },
+    "new_arrivals": {
+      "type": "product-slider",
+      "settings": {
+        "heading": "New arrivals",
+        "products_to_show": 8
+      }
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "settings": {
+        "layout": "single"
+      }
+    },
+    "video": {
+      "type": "video-section",
+      "settings": {
+        "heading": "Our story",
+        "section_background": "card"
+      }
+    },
+    "brand_logos": {
+      "type": "brand-logos",
+      "settings": {
+        "kicker": "As seen in"
+      }
+    },
+    "instagram": {
+      "type": "instagram-feed",
+      "settings": {
+        "handle": "atelier"
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "heading": "10% off your first order"
       }
     }
   },
-  "order": ["banner", "featured_collection"]
+  "order": [
+    "hero",
+    "featured_collections",
+    "best_sellers",
+    "image_banner",
+    "new_arrivals",
+    "testimonials",
+    "video",
+    "brand_logos",
+    "instagram",
+    "newsletter"
+  ]
 }

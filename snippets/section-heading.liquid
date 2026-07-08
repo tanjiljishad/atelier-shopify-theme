@@ -1,0 +1,32 @@
+{%- comment -%}
+  Shared section heading (spec §5.5): kicker + H2 + optional body copy +
+  optional CTA link. Reused by every homepage content section that needs one
+  instead of six near-identical copies of the same three lines of markup.
+
+  Accepts:
+  - kicker: optional eyebrow text above the heading
+  - heading (required)
+  - body: optional supporting copy below the heading
+  - cta_text / cta_url: optional link, rendered as a ghost button
+  - align: 'left' (default) | 'center'
+  - heading_tag: 'h2' (default) — pass 'h1' for the one section on the page
+    allowed to use it (spec's heading hierarchy expects exactly one H1 per
+    page; on the homepage that's the hero, so every other section defaults
+    to h2 and should never override it to h1).
+{%- endcomment -%}
+{%- liquid
+  assign heading_align = align | default: 'left'
+  assign tag = heading_tag | default: 'h2'
+-%}
+<div class="section-heading section-heading--{{ heading_align }}" data-scroll-reveal>
+  {%- if kicker != blank -%}
+    <span class="kicker" data-scroll-reveal-child>{{ kicker }}</span>
+  {%- endif -%}
+  <{{ tag }} class="section-heading__title" data-scroll-reveal-child>{{ heading }}</{{ tag }}>
+  {%- if body != blank -%}
+    <div class="section-heading__body text-body-large" data-scroll-reveal-child>{{ body }}</div>
+  {%- endif -%}
+  {%- if cta_text != blank and cta_url != blank -%}
+    <a href="{{ cta_url }}" class="btn btn--ghost section-heading__cta" data-scroll-reveal-child>{{ cta_text }}</a>
+  {%- endif -%}
+</div>

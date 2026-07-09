@@ -1,0 +1,35 @@
+{%- comment -%}
+  Recently viewed (spec §5.2): session-persistent, PDP + cart page only,
+  auto-hides under 2 items. Architecture trade-off worth calling out: unlike
+  wishlist/compare (which only ever need to re-render products already on the
+  current page, so storing just an id is enough), recently-viewed has to show
+  products from OTHER pages the visitor already navigated away from — there's
+  no Liquid object for those on this page load. Rather than adding a second
+  network round trip (fetch each stored handle's /products/{handle}.js on
+  every PDP visit), this stores one small display snapshot (title, url,
+  image, price) per product directly in localStorage at view-time, then
+  assets/recently-viewed.js renders straight from that — zero extra requests,
+  at the cost of a stale price/title if a merchant changes either later. A
+  reasonable trade for a below-the-fold, non-transactional module.
+
+  Accepts: product (required).
+{%- endcomment -%}
+<div class="recently-viewed" data-recently-viewed hidden>
+  <script type="application/json" data-recently-viewed-current>
+    {
+      "handle": {{ product.handle | json }},
+      "title": {{ product.title | json }},
+      "url": {{ product.url | json }},
+      "image": {{ product.featured_image | image_url: width: 400 | json }},
+      "price": {{ product.price | json }},
+      "compareAtPrice": {{ product.compare_at_price | json }},
+      "available": {{ product.available | json }},
+      "i18n": {
+        "salePrice": {{ 'products.product.price.sale_price' | t | json }},
+        "regularPrice": {{ 'products.product.price.regular_price' | t | json }}
+      }
+    }
+  </script>
+  <h2 class="recently-viewed__title text-h4">{{ 'products.product.recently_viewed_heading' | t }}</h2>
+  <div class="grid grid-cols-4" data-recently-viewed-grid></div>
+</div>

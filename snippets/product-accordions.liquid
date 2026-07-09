@@ -1,0 +1,56 @@
+{%- comment -%}
+  Product information accordions (spec §7, §5.4): Description / Materials &
+  Care / Shipping & Returns / FAQ, each an accordion-item.liquid — the exact
+  same primitive collection-filters/FAQ sections already use, not a parallel
+  implementation. Every group beyond Description is metafield-driven and
+  simply doesn't render when the merchant hasn't filled it in, rather than
+  showing an empty panel.
+
+  Metafields expected (all optional, namespace `custom`):
+  - materials_and_care (rich text)
+  - shipping_and_returns (rich text)
+  - faq (rich text)
+  - documents (list of files) — rendered as a plain download-link list inside
+    its own "Downloads" item when present, since a file list doesn't fit
+    naturally inside any of the four spec'd panels.
+
+  Accepts: product (required).
+{%- endcomment -%}
+{%- liquid
+  assign materials = product.metafields.custom.materials_and_care
+  assign shipping_returns = product.metafields.custom.shipping_and_returns
+  assign faq = product.metafields.custom.faq
+  assign documents = product.metafields.custom.documents
+-%}
+<accordion-group class="product-accordions"{% if settings.product_accordion_single_open %} single-open{% endif %}>
+  {% render 'accordion-item', title: 'products.product.accordions.description' | t, content: product.description, open: true %}
+
+  {%- if materials != blank -%}
+    {% render 'accordion-item', title: 'products.product.accordions.materials_care' | t, content: materials %}
+  {%- endif -%}
+
+  {%- if shipping_returns != blank -%}
+    {% render 'accordion-item', title: 'products.product.accordions.shipping_returns' | t, content: shipping_returns %}
+  {%- endif -%}
+
+  {%- if faq != blank -%}
+    {% render 'accordion-item', title: 'products.product.accordions.faq' | t, content: faq %}
+  {%- endif -%}
+
+  {%- capture documents_content -%}
+    {%- if documents != blank -%}
+      <ul class="product-accordions__documents list-unstyled">
+        {%- for document in documents -%}
+          {%- assign document_label = document.filename -%}
+          {%- if document_label == blank -%}
+            {%- assign document_label = 'products.product.accordions.download' | t -%}
+          {%- endif -%}
+          <li><a href="{{ document.url }}" download>{{ document_label }}</a></li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  {%- endcapture -%}
+  {%- if documents_content != blank -%}
+    {% render 'accordion-item', title: 'products.product.accordions.documents' | t, content: documents_content %}
+  {%- endif -%}
+</accordion-group>

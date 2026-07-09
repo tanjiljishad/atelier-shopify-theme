@@ -2895,8 +2895,13 @@ html.performance-mode .hero--ken-burns .hero__image {
   display: none;
 }
 
+/* 4 full cards + a ~15% peek of the 5th = 4.15 "card-widths" visible at once
+   (spec §5.5). Between those there are 4 full 20px gaps (between cards
+   1–2, 2–3, 3–4, 4–5), so: item-width × 4.15 + (4 × 20px) = 100%.
+   Previous version of this formula (calc((100% - 60px) / 4 - 15px + 15%))
+   didn't reduce to a sane value — flagged in Milestone 5, fixed here. */
 .product-slider__item {
-  flex: 0 0 calc((100% - 60px) / 4 - 15px + 15%);
+  flex: 0 0 calc((100% - 80px) / 4.15);
   scroll-snap-align: start;
 }
 
@@ -3763,4 +3768,745 @@ html.performance-mode .hero--ken-burns .hero__image {
 
 .collection-empty-state__title {
   color: var(--color-text);
+}
+
+/* -------------------------------------------------------------------------
+   40. Product page — layout
+   ------------------------------------------------------------------------- */
+
+/* Unknown custom elements default to display: inline — every other custom
+   element in the theme sets its own explicit display (see quantity-input,
+   .variant-picker), so this one needs the same rather than silently relying
+   on the browser default. */
+product-recommendations {
+  display: block;
+}
+
+.text-h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-h4);
+  line-height: var(--lh-h4);
+  color: var(--color-text);
+}
+
+.product-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  margin-bottom: var(--space-9);
+}
+
+.product-layout__gallery {
+  flex: 7;
+  min-width: 0;
+}
+
+.product-layout__buybox {
+  flex: 5;
+  min-width: 0;
+}
+
+@media (min-width: 990px) {
+  .product-layout__buybox {
+    position: sticky;
+    top: calc(var(--header-height-desktop, 72px) + var(--space-6));
+  }
+}
+
+@media (max-width: 989px) {
+  .product-layout {
+    flex-direction: column;
+  }
+
+  .product-layout__gallery,
+  .product-layout__buybox {
+    width: 100%;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   41. Product gallery
+   ------------------------------------------------------------------------- */
+
+.product-gallery {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.product-gallery--thumbs-left {
+  grid-template-columns: 88px 1fr;
+}
+
+.product-gallery--thumbs-bottom {
+  grid-template-columns: 1fr;
+}
+
+.product-gallery--thumbs-left .product-gallery__thumbs {
+  order: -1;
+}
+
+.product-gallery__main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  outline: none;
+}
+
+.product-gallery__item {
+  position: relative;
+  background: var(--color-card);
+  border-radius: var(--radius-image);
+  overflow: hidden;
+}
+
+.product-gallery__media-inner {
+  position: absolute;
+  inset: 0;
+}
+
+.product-gallery__media-inner > img,
+.product-gallery__media-inner > video,
+.product-gallery__media-inner > model-viewer,
+.product-gallery__media-inner > iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+}
+
+.product-gallery__item:not(.is-loaded) .product-gallery__media-inner {
+  background: linear-gradient(100deg, var(--color-card) 30%, var(--color-border) 50%, var(--color-card) 70%);
+  background-size: 200% 100%;
+  animation: gallery-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes gallery-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+.product-gallery__zoom-trigger {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: none;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.product-gallery__item:hover .product-gallery__zoom-trigger,
+.product-gallery__zoom-trigger:focus-visible {
+  opacity: 1;
+}
+
+.product-gallery__thumbs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.product-gallery--thumbs-left .product-gallery__thumbs {
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.product-gallery--thumbs-bottom .product-gallery__thumbs {
+  flex-wrap: wrap;
+}
+
+.product-gallery__thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 72px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-image);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.product-gallery__thumb:hover,
+.product-gallery__thumb.is-active {
+  opacity: 1;
+}
+
+.product-gallery__thumb.is-active {
+  outline: 1.5px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.product-gallery__thumb-image {
+  display: block;
+  border-radius: var(--radius-image);
+  overflow: hidden;
+}
+
+.product-gallery__thumb-badge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-surface);
+  background: var(--color-overlay);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+
+.product-gallery__dots {
+  display: none;
+  justify-content: center;
+  gap: 4px;
+}
+
+@media (max-width: 749px) {
+  .product-gallery--thumbs-left,
+  .product-gallery--thumbs-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .product-gallery__thumbs {
+    display: none;
+  }
+
+  .product-gallery__main {
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    gap: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .product-gallery__item {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    border-radius: 0;
+  }
+
+  .product-gallery__dots {
+    display: flex;
+  }
+
+  .product-gallery__dot {
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-border);
+    transition: width var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+  }
+
+  .product-gallery__dot.is-active {
+    width: 16px;
+    background: var(--color-text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-gallery__item:not(.is-loaded) .product-gallery__media-inner {
+    animation: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   42. Product lightbox
+   ------------------------------------------------------------------------- */
+
+.lightbox[hidden] {
+  display: none;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.lightbox.is-open {
+  opacity: 1;
+}
+
+.lightbox__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--color-background);
+}
+
+.lightbox__panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform: scale(0.97);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.lightbox.is-open .lightbox__panel {
+  transform: scale(1);
+}
+
+.lightbox__close {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.lightbox__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.lightbox__arrow--prev {
+  left: var(--space-5);
+}
+
+.lightbox__arrow--next {
+  right: var(--space-5);
+}
+
+.lightbox__stage {
+  width: 100%;
+  height: 100%;
+  padding: var(--space-9);
+}
+
+.lightbox__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.lightbox__item[hidden] {
+  display: none;
+}
+
+.lightbox__image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+  transition: transform var(--dur-fast) var(--ease-out);
+  touch-action: none;
+}
+
+.lightbox__image.is-zoomed {
+  cursor: zoom-out;
+}
+
+.lightbox__counter {
+  position: absolute;
+  bottom: var(--space-5);
+  left: 50%;
+  transform: translateX(-50%);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 749px) {
+  .lightbox__stage {
+    padding: var(--space-5);
+  }
+
+  .lightbox__arrow {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   43. Buy box
+   ------------------------------------------------------------------------- */
+
+.buy-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.buy-box__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.buy-box__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.buy-box__vendor {
+  color: var(--color-muted);
+}
+
+.buy-box__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+  color: var(--color-text);
+}
+
+.buy-box__price-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.buy-box__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.buy-box__rating:hover {
+  color: var(--color-text);
+}
+
+.buy-box__quantity-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.buy-box__atc {
+  position: relative;
+}
+
+.btn--full {
+  display: flex;
+  width: 100%;
+}
+
+/* "Added ✓" state (spec §7 ATC feedback): Success fill, held for 800ms by
+   assets/product-form.js before reverting — reuses the same .btn__label
+   fade contract .is-loading already established rather than a parallel
+   transition. */
+.btn.is-added {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+  color: var(--color-surface);
+}
+
+.buy-box__express-checkout {
+  margin-top: var(--space-2);
+}
+
+.buy-box__shipping-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-muted);
+}
+
+.buy-box__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.buy-box__action-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-text-2);
+  font-size: var(--text-small);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.buy-box__action-button:hover,
+.buy-box__action-button.is-active {
+  color: var(--color-text);
+}
+
+.buy-box__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  color: var(--color-muted);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/* -------------------------------------------------------------------------
+   44. Variant picker — size guide
+   ------------------------------------------------------------------------- */
+
+/* .variant-picker__size-guide sits as <legend>'s sibling, not its child
+   (legend only permits phrasing content — <details> isn't valid inside it),
+   positioned to visually align with the legend's row via the option's own
+   position: relative rather than a shared flex parent. */
+.variant-picker__option {
+  position: relative;
+}
+
+.variant-picker__size-guide {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.variant-picker__size-guide-trigger {
+  list-style: none;
+  color: var(--color-text-2);
+  font-size: var(--text-small);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.variant-picker__size-guide-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.variant-picker__size-guide-panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: var(--z-dropdown);
+  width: 280px;
+  max-width: 80vw;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+}
+
+/* -------------------------------------------------------------------------
+   45. Trust badges
+   ------------------------------------------------------------------------- */
+
+.trust-badges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.trust-badges__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-2);
+}
+
+/* -------------------------------------------------------------------------
+   46. Product accordions
+   ------------------------------------------------------------------------- */
+
+.product-accordions {
+  display: block;
+}
+
+.product-accordions__documents a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* -------------------------------------------------------------------------
+   47. Share button
+   ------------------------------------------------------------------------- */
+
+.share-button {
+  position: relative;
+  display: inline-flex;
+}
+
+/* -------------------------------------------------------------------------
+   48. Sticky mobile add-to-cart bar
+   ------------------------------------------------------------------------- */
+
+.sticky-atc[hidden] {
+  display: none;
+}
+
+.sticky-atc {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 64px;
+  padding-inline: var(--space-4);
+  /* Fallback first: browsers without color-mix() support keep this solid
+     surface color instead of silently discarding the whole declaration. */
+  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--color-border);
+}
+
+.sticky-atc__media {
+  flex-shrink: 0;
+  width: 40px;
+  border-radius: var(--radius-image);
+  overflow: hidden;
+}
+
+.sticky-atc__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.sticky-atc__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-small);
+  color: var(--color-text-2);
+}
+
+.sticky-atc__button {
+  flex-shrink: 0;
+}
+
+@media (min-width: 990px) {
+  .sticky-atc {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   49. Complete the look
+   ------------------------------------------------------------------------- */
+
+.complete-the-look {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.complete-the-look__items {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.complete-the-look__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+}
+
+.complete-the-look__item .checkbox-field {
+  flex-shrink: 0;
+}
+
+.complete-the-look__item .checkbox-field__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.complete-the-look__media {
+  flex-shrink: 0;
+  width: 56px;
+  border-radius: var(--radius-image);
+  overflow: hidden;
+}
+
+.complete-the-look__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.complete-the-look__product-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.complete-the-look__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.complete-the-look__total {
+  font-weight: 600;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }

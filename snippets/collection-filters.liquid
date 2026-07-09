@@ -24,35 +24,25 @@
           <div class="accordion-item__panel-inner">
             {%- if filter.type == 'price_range' -%}
               <div class="collection-filter-price">
-                <div class="field">
-                  <label class="field__label" for="FilterPriceMin">{{ 'collections.filters.price_from' | t }}</label>
-                  <div class="field__control">
-                    <input
-                      type="number"
-                      class="field__input"
-                      id="FilterPriceMin"
-                      name="{{ filter.param_name }}.gte"
-                      value="{{ filter.min_value.value }}"
-                      placeholder="0"
-                      min="0"
-                    >
-                  </div>
-                </div>
+                {% render 'field',
+                  id: 'FilterPriceMin',
+                  label: 'collections.filters.price_from' | t,
+                  type: 'number',
+                  name: filter.param_name | append: '.gte',
+                  value: filter.min_value.value,
+                  placeholder: '0',
+                  min: 0
+                %}
                 <span class="collection-filter-price__separator" aria-hidden="true">–</span>
-                <div class="field">
-                  <label class="field__label" for="FilterPriceMax">{{ 'collections.filters.price_to' | t }}</label>
-                  <div class="field__control">
-                    <input
-                      type="number"
-                      class="field__input"
-                      id="FilterPriceMax"
-                      name="{{ filter.param_name }}.lte"
-                      value="{{ filter.max_value.value }}"
-                      placeholder="{{ filter.range_max | money_without_currency }}"
-                      min="0"
-                    >
-                  </div>
-                </div>
+                {% render 'field',
+                  id: 'FilterPriceMax',
+                  label: 'collections.filters.price_to' | t,
+                  type: 'number',
+                  name: filter.param_name | append: '.lte',
+                  value: filter.max_value.value,
+                  placeholder: filter.range_max | money_without_currency,
+                  min: 0
+                %}
               </div>
             {%- elsif filter.type == 'boolean' -%}
               {% render 'collection-filter-value', value: filter.true_value %}

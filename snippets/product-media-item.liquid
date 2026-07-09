@@ -1,0 +1,50 @@
+{%- comment -%}
+  Single gallery media item (spec §5.4 "Product gallery"): image, Shopify-hosted
+  video, external (YouTube/Vimeo) video, or 3D model — one snippet handles all
+  four so product-gallery.liquid and product-lightbox never duplicate the
+  media_type branch. Images route through responsive-image.liquid (srcset
+  ladder, CLS-safe aspect box); video/external_video/model use Shopify's own
+  video_tag/external_video_tag/model_viewer_tag filters rather than hand-rolled
+  <video>/<iframe> markup — model_viewer_tag needs the model-viewer library,
+  already auto-injected via {{ content_for_header }} in layout/theme.liquid.
+
+  Accepts:
+  - media (required): one entry from product.media
+  - priority: true for the first/active image on load (LCP) — passed straight
+    through to responsive-image.liquid
+  - sizes: <img> sizes attribute override
+  - context: 'gallery' (default) | 'lightbox' | 'thumbnail' — thumbnail always
+    renders just the (small) preview image with a type glyph badge, regardless
+    of media_type, since a video/model thumbnail is still just its poster frame.
+{%- endcomment -%}
+{%- liquid
+  assign media_context = context | default: 'gallery'
+  assign item_sizes = sizes | default: '(min-width: 990px) 58vw, 100vw'
+-%}
+{%- if media_context == 'thumbnail' -%}
+  <span class="product-gallery__thumb-image aspect-ratio" style="aspect-ratio: {{ aspect_ratio | default: '4/5' }};">
+    {% render 'responsive-image', image: media.preview_image, sizes: '120px', wrap: false, class: 'product-gallery__thumb-img' %}
+    {%- if media.media_type == 'video' or media.media_type == 'external_video' -%}
+      <span class="product-gallery__thumb-badge" aria-hidden="true">{% render 'icon', name: 'play', size: 14 %}</span>
+    {%- elsif media.media_type == 'model' -%}
+      <span class="product-gallery__thumb-badge" aria-hidden="true">3D</span>
+    {%- endif -%}
+  </span>
+{%- else -%}
+  <div
+    class="product-gallery__media-inner"
+    data-media-id="{{ media.id }}"
+    data-media-type="{{ media.media_type }}"
+  >
+    {%- case media.media_type -%}
+      {%- when 'video' -%}
+        {{ media | video_tag: image_size: '1400x', controls: true, preload: 'none', class: 'product-gallery__video' }}
+      {%- when 'external_video' -%}
+        {{ media | external_video_tag: image_size: '1400x', class: 'product-gallery__external-video' }}
+      {%- when 'model' -%}
+        {{ media | model_viewer_tag: reveal: 'interaction', image_size: '1400x', class: 'product-gallery__model' }}
+      {%- else -%}
+        {% render 'responsive-image', image: media.preview_image, sizes: item_sizes, priority: priority, wrap: false, class: 'product-gallery__image' %}
+    {%- endcase -%}
+  </div>
+{%- endif -%}

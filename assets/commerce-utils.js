@@ -54,3 +54,30 @@ export function findMatchingVariant(variants, selections) {
     ) || null
   );
 }
+
+/**
+ * Builds the exact same markup snippets/price.liquid renders server-side,
+ * client-side — used by both assets/variant-picker.js (buy box) and
+ * assets/sticky-add-to-cart.js (mobile bar) so a variant change only has one
+ * place that knows what price markup looks like, matching price.liquid's
+ * "never color-only" sale-state labeling.
+ *
+ * @param {{price: number, compareAtPrice: number}} variant
+ * @param {{salePrice: string, regularPrice: string}} i18n
+ * @param {'card'|'pdp'} [size]
+ */
+export function renderPriceHtml(variant, i18n, size = 'pdp') {
+  const onSale = variant.compareAtPrice > variant.price;
+  if (onSale) {
+    return `<div class="price price--${size} price--sale">
+      <span class="visually-hidden">${i18n.salePrice}</span>
+      <span class="price__sale">${formatMoney(variant.price)}</span>
+      <span class="visually-hidden">${i18n.regularPrice}</span>
+      <s class="price__compare">${formatMoney(variant.compareAtPrice)}</s>
+    </div>`;
+  }
+  return `<div class="price price--${size}">
+    <span class="visually-hidden">${i18n.regularPrice}</span>
+    <span class="price__regular">${formatMoney(variant.price)}</span>
+  </div>`;
+}

@@ -22,8 +22,8 @@ class CollectionFilters {
     this.form = container.querySelector('#FacetFiltersForm');
     this.main = container.querySelector('.collection-layout__main');
     this.filterPanel = container.querySelector('.collection-filters-panel');
-    this.sortSelect = container.querySelector('[data-sort-select]');
-    this.gridSwitcher = container.querySelector('[data-grid-switcher]');
+    // this.sortSelect is (re-)queried inside bindSort(), which also runs
+    // after every AJAX swap of `container`'s contents.
 
     if (!this.form || !this.main) return;
 
@@ -41,8 +41,11 @@ class CollectionFilters {
   }
 
   bindFilters() {
-    this.form.addEventListener('change', (event) => {
-      if (event.target === this.sortSelect) return; // handled separately, always instant
+    // Note: the sort <select> lives in the toolbar, outside this.form's DOM
+    // subtree (linked to it only via its form="FacetFiltersForm" attribute),
+    // so its change events never bubble to this listener at all — sort is
+    // deliberately handled entirely by bindSort() instead.
+    this.form.addEventListener('change', () => {
       if (this.isSidebarMode()) this.apply();
     });
 
@@ -55,6 +58,7 @@ class CollectionFilters {
   }
 
   bindSort() {
+    this.sortSelect = this.container.querySelector('[data-sort-select]');
     if (!this.sortSelect) return;
     this.sortSelect.addEventListener('change', () => this.apply());
   }
@@ -106,11 +110,13 @@ class CollectionFilters {
       } else if (newMain) {
         this.main.replaceWith(newMain);
         this.main = newMain;
-        // bindPagination/bindLoadMore delegate from `this.main`, which was
-        // just replaced — re-bind onto the new node or clicks silently stop
-        // working after the very first swap.
+        // bindPagination/bindLoadMore delegate from `this.main`, and the
+        // toolbar's sort select lives inside it too — all three just got
+        // replaced along with it, so every listener needs re-attaching to
+        // the new nodes or they silently stop working after the first swap.
         this.bindPagination();
         this.bindLoadMore();
+        this.bindSort();
       }
 
       if (newForm && this.form) {

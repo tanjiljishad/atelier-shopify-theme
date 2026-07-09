@@ -1,40 +1,97 @@
+{%- comment -%}
+  Product page (spec §7). Composes every primitive built across Milestones
+  2–6 plus this milestone's new gallery/buy-box/accordions/trust-badges
+  components — see CHANGELOG.md for the full file-by-file breakdown. Order on
+  the page follows spec exactly: gallery+buy-box split, bundle/cross-sell,
+  recommendations, reviews, recently viewed, with the mobile sticky ATC bar
+  layered on top throughout.
+
+  Blocks: "Complete the look" products and the Reviews app slot are both
+  merchant-configured blocks, but always render in their spec-mandated
+  position on the page regardless of the order blocks are arranged in the
+  theme editor — that order is a content decision (which products, which
+  review app), not a layout one.
+{%- endcomment -%}
+{%- liquid
+  assign bundle_product_list = '' | split: ','
+  assign app_blocks = '' | split: ','
+  for block in section.blocks
+    case block.type
+      when 'complete_the_look_item'
+        if block.settings.product != blank and block.settings.product.available
+          assign bundle_product_list = bundle_product_list | concat: block.settings.product
+        endif
+      when '@app'
+        assign app_blocks = app_blocks | concat: block
+    endcase
+  endfor
+-%}
+<div class="container container--wide">
+  {% render 'breadcrumb', product: product %}
+</div>
+
 <section class="section">
-  <div class="page-width product">
-    <div class="product__media">
-      {% if product.featured_media %}
-        {{ product.featured_media | image_url: width: 1400 | image_tag: widths: '500, 800, 1100, 1400', sizes: '(min-width: 900px) 50vw, 100vw' }}
-      {% endif %}
+  <div class="container container--wide product-layout">
+    <div class="product-layout__gallery">
+      {% render 'product-gallery', product: product %}
     </div>
-
-    <div class="product__info">
-      <h1>{{ product.title }}</h1>
-      {% render 'price', product: product %}
-
-      {% form 'product', product %}
-        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-
-        <label for="Quantity-{{ section.id }}">{{ 'products.product.quantity' | t }}</label>
-        <input id="Quantity-{{ section.id }}" class="quantity-input" type="number" name="quantity" value="1" min="1">
-
-        <button class="button" type="submit" {% unless product.available %}disabled{% endunless %}>
-          {% if product.available %}
-            {{ 'products.product.add_to_cart' | t }}
-          {% else %}
-            {{ 'products.product.sold_out' | t }}
-          {% endif %}
-        </button>
-      {% endform %}
-
-      <div class="rte">
-        {{ product.description }}
-      </div>
+    <div class="product-layout__buybox">
+      {% render 'buy-box', product: product, section: section %}
     </div>
   </div>
 </section>
 
+{%- comment -%} spec §7: "2–3 items" — a lone item isn't a bundle. {%- endcomment -%}
+{%- if bundle_product_list.size >= 2 -%}
+  <section class="section section--rhythm section--bg-card">
+    <div class="container container--wide">
+      {% render 'complete-the-look', products: bundle_product_list %}
+    </div>
+  </section>
+{%- endif -%}
+
+{% render 'product-recommendations', product: product %}
+
+{%- if app_blocks.size > 0 -%}
+  <section class="section section--rhythm" id="Reviews-{{ section.id }}">
+    <div class="container container--wide">
+      {%- for block in app_blocks -%}
+        {% render block %}
+      {%- endfor -%}
+    </div>
+  </section>
+{%- endif -%}
+
+{%- if settings.product_show_recently_viewed -%}
+  <section class="section section--rhythm">
+    <div class="container container--wide">
+      {% render 'recently-viewed', product: product %}
+    </div>
+  </section>
+{%- endif -%}
+
+{% render 'sticky-add-to-cart', product: product %}
+
 {% schema %}
 {
-  "name": "Main product",
-  "settings": []
+  "name": "Product page",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "complete_the_look_item",
+      "name": "Complete the look: item",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        }
+      ]
+    },
+    {
+      "type": "@app"
+    }
+  ]
 }
 {% endschema %}

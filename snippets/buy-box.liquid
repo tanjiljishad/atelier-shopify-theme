@@ -1,0 +1,119 @@
+{%- comment -%}
+  Sticky buy box (spec §7): the right-hand column of the 7/5 product-page
+  split. Composes existing primitives end to end — product-labels (badges),
+  price, star-rating, inventory-indicator, variant-picker, quantity-input,
+  product-accordions, trust-badges, share-button — the only new markup here
+  is the layout/order around them and the add-to-cart form itself, which
+  can't reuse product-form-button.liquid (that snippet's 3-way sold-out/
+  quick-add/choose-options branch is for cards/spotlights that don't already
+  have a full variant picker on screen; a PDP always shows the real form for
+  whichever variant is currently selected).
+
+  Sticky behavior is a single CSS declaration (position: sticky; see
+  theme.css), not JS — same technique as .collection-toolbar.
+
+  Express checkout uses Shopify's own `payment_button` filter (Shop Pay /
+  PayPal/etc. per the merchant's payment settings) rather than any custom
+  checkout integration — zero maintenance, always matches whatever the
+  merchant has enabled in their Shopify admin.
+
+  Accepts: product (required), section (required, for unique id namespacing).
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign rating_value = product.metafields.reviews.rating.value
+  assign rating_count = product.metafields.reviews.rating_count.value
+  assign size_guide_content = product.metafields.custom.size_guide
+-%}
+<div class="buy-box">
+  <div class="buy-box__header">
+    {%- if product.vendor != blank -%}
+      <span class="caption buy-box__vendor">{{ product.vendor }}</span>
+    {%- endif -%}
+    <h1 class="buy-box__title">{{ product.title }}</h1>
+
+    <div class="buy-box__price-row">
+      <div data-product-price>
+        {% render 'price', product: product, size: 'pdp' %}
+      </div>
+      {%- if rating_value != blank -%}
+        <a href="#Reviews-{{ section.id }}" class="buy-box__rating" aria-label="{{ 'products.product.rating' | t: rating: rating_value, count: rating_count }}">
+          {% render 'star-rating', rating: rating_value, size: 16 %}
+          <span aria-hidden="true">{{ rating_value }} · {{ rating_count }} {{ 'products.product.reviews' | t }}</span>
+        </a>
+      {%- endif -%}
+    </div>
+
+    {% render 'product-labels', product: product %}
+  </div>
+
+  <div data-product-inventory>
+    {% render 'inventory-indicator', product: product %}
+  </div>
+
+  {%- form 'product', product, class: 'buy-box__form' -%}
+    <input type="hidden" name="id" value="{{ current_variant.id }}" data-product-form-variant-id>
+
+    {%- if product.has_only_default_variant == false -%}
+      {% render 'variant-picker', product: product, size_guide_content: size_guide_content %}
+    {%- endif -%}
+
+    <div class="buy-box__quantity-row">
+      <label class="field__label" for="Quantity-{{ section.id }}">{{ 'general.quantity.label' | t }}</label>
+      {% render 'quantity-input', id: 'Quantity-' | append: section.id, value: 1, min: 1 %}
+    </div>
+
+    <button
+      type="submit"
+      class="btn btn--primary btn--full buy-box__atc"
+      data-product-atc
+      data-added-label="{{ 'products.product.added' | t }}"
+      {% unless current_variant.available %}aria-disabled="true"{% endunless %}
+    >
+      <span class="btn__label">
+        {%- if current_variant.available -%}
+          {{ 'products.product.add_to_cart' | t }}
+        {%- else -%}
+          {{ 'products.product.notify_me' | t }}
+        {%- endif -%}
+      </span>
+    </button>
+
+    {%- if settings.product_show_dynamic_checkout -%}
+      <div class="buy-box__express-checkout">
+        {{ form | payment_button }}
+      </div>
+    {%- endif -%}
+  {%- endform -%}
+
+  {%- if settings.product_show_shipping_estimate -%}
+    <p class="buy-box__shipping-note text-small">
+      {% render 'icon', name: 'truck', size: 14 %} {{ 'products.product.shipping_estimate' | t }}
+    </p>
+  {%- endif -%}
+
+  <div class="buy-box__actions">
+    <button type="button" class="buy-box__action-button" data-wishlist-toggle data-product-id="{{ product.id }}" aria-pressed="false" aria-label="{{ 'products.product.wishlist_add' | t }}">
+      {% render 'icon', name: 'heart', size: 18 %} <span>{{ 'products.product.wishlist_add' | t }}</span>
+    </button>
+    <button type="button" class="buy-box__action-button" data-compare-toggle data-product-id="{{ product.id }}" aria-pressed="false" aria-label="{{ 'products.product.compare_add' | t }}">
+      {% render 'icon', name: 'git-compare', size: 18 %} <span>{{ 'products.product.compare_add' | t }}</span>
+    </button>
+    {% render 'share-button', product: product %}
+  </div>
+
+  {%- if settings.product_show_trust_badges -%}
+    {% render 'trust-badges' %}
+  {%- endif -%}
+
+  {% render 'product-accordions', product: product %}
+
+  <p class="buy-box__meta text-small">
+    {%- if current_variant.sku != blank -%}
+      <span>{{ 'products.product.sku_label' | t }}: <span data-product-sku>{{ current_variant.sku }}</span></span>
+    {%- endif -%}
+    {%- if product.type != blank -%}
+      <span>{{ 'products.product.type_label' | t }}: {{ product.type }}</span>
+    {%- endif -%}
+  </p>
+</div>

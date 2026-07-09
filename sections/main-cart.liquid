@@ -1,10 +1,10 @@
 <section class="section">
-  <div class="page-width">
+  <div class="container">
     <h1>{{ 'general.cart' | t }}</h1>
 
     {% if cart.empty? %}
       <p>Your cart is empty.</p>
-      <a class="button" href="{{ routes.all_products_collection_url }}">Continue shopping</a>
+      <a class="btn btn--primary" href="{{ routes.all_products_collection_url }}">Continue shopping</a>
     {% else %}
       <form action="{{ routes.cart_url }}" method="post">
         <div class="cart-items">
@@ -18,7 +18,7 @@
               <div>
                 <a href="{{ item.url }}">{{ item.product.title }}</a>
                 <p>{{ item.final_line_price | money }}</p>
-                <input class="quantity-input" type="number" name="updates[]" value="{{ item.quantity }}" min="0">
+                <input type="number" name="updates[]" value="{{ item.quantity }}" min="0">
               </div>
             </div>
           {% endfor %}
@@ -26,8 +26,8 @@
 
         <div class="cart-summary">
           <p><strong>Subtotal:</strong> {{ cart.total_price | money }}</p>
-          <button class="button button--secondary" type="submit" name="update">Update cart</button>
-          <button class="button" type="submit" name="checkout">Checkout</button>
+          <button class="btn btn--outline" type="submit" name="update">Update cart</button>
+          <button class="btn btn--primary" type="submit" name="checkout">Checkout</button>
         </div>
       </form>
     {% endif %}

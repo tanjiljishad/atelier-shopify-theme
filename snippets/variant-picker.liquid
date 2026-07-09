@@ -1,16 +1,19 @@
 {%- comment -%}
-  Variant picker (spec §5.3, §7). Renders the accessible markup contract for
-  a future <variant-picker> custom element to hook into for live switching
-  (updating price/media/URL on selection) — that JS is explicitly deferred to
-  the product page milestone, since it needs a product JSON blob and page
-  regions (gallery, price, buy box) that don't exist until then. Everything
-  rendered here already works correctly with zero JS: each option is a real
-  native radio group (or <select> for long lists), so keyboard navigation
-  (Tab, Arrow keys within a group) and screen reader semantics come free from
-  the browser, matching the same "native control + styled sibling" pattern as
-  checkbox-field/switch-field (spec §5: never disable an unavailable option —
-  "still clickable → Notify me" — so unavailable values stay real, enabled
-  radios, just visually struck through via a class, never `disabled`).
+  Variant picker (spec §5.3, §7). Built on real native radio groups (or
+  <select> for long lists), so keyboard navigation (Tab, Arrow keys within a
+  group) and screen reader semantics come free from the browser — matching
+  the same "native control + styled sibling" pattern as checkbox-field/
+  switch-field (spec §5: never disable an unavailable option — "still
+  clickable → Notify me" — so unavailable values stay real, enabled radios,
+  just visually struck through via a class, never `disabled`). All of this
+  already works with zero JS (it's a real form).
+
+  <variant-picker> (assets/variant-picker.js) progressively enhances it for
+  live switching (spec §7 "Variant behavior"): price/media/URL/SKU/
+  availability update in place with no page reload, and unavailable option
+  combinations re-strike live as other options change. It reads the JSON
+  blob below rather than re-deriving variant data in JS — one source of
+  truth (Liquid's own product.variants), no parallel logic to keep in sync.
 
   Display style per option is chosen automatically since there's no per-item
   metadata to hang a merchant setting on:
@@ -23,12 +26,53 @@
   guessing wrong, and any variant with its own featured_image (fabric/finish
   photography) uses that image instead of a flat color.
 
-  Accepts: product (required).
+  Accepts:
+  - product (required)
+  - size_guide_content: optional captured HTML — when given, a "Size guide"
+    disclosure (spec §7: "size chips + size-guide link") renders beside
+    whichever option is named "Size". Left as an opt-in param rather than
+    baked-in PDP logic so featured-product.liquid's existing call (no size
+    guide, a compact spotlight context) is unaffected.
 {%- endcomment -%}
 {%- liquid
   assign current_variant = product.selected_or_first_available_variant
 -%}
-<div class="variant-picker" data-variant-picker data-product-id="{{ product.id }}">
+<variant-picker class="variant-picker" data-product-id="{{ product.id }}" data-product-url="{{ product.url }}">
+  <script type="application/json" data-variant-picker-json>
+    {
+      "variants": [
+        {%- for variant in product.variants -%}
+          {
+            "id": {{ variant.id | json }},
+            "available": {{ variant.available | json }},
+            "price": {{ variant.price | json }},
+            "compareAtPrice": {{ variant.compare_at_price | json }},
+            "sku": {{ variant.sku | json }},
+            "title": {{ variant.title | json }},
+            "featuredMediaId": {{ variant.featured_media.id | json }},
+            "options": {{ variant.options | json }},
+            "inventoryManagement": {{ variant.inventory_management | json }},
+            "inventoryPolicy": {{ variant.inventory_policy | json }},
+            "inventoryQuantity": {{ variant.inventory_quantity | json }},
+            "url": {{ variant.url | json }}
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ],
+      "lowStockThreshold": {{ settings.inventory_low_stock_threshold | json }},
+      "i18n": {
+        "addToCart": {{ 'products.product.add_to_cart' | t | json }},
+        "soldOut": {{ 'products.product.sold_out' | t | json }},
+        "unavailable": {{ 'products.product.unavailable' | t | json }},
+        "notifyMe": {{ 'products.product.notify_me' | t | json }},
+        "salePrice": {{ 'products.product.price.sale_price' | t | json }},
+        "regularPrice": {{ 'products.product.price.regular_price' | t | json }},
+        "inStock": {{ 'products.product.inventory.in_stock' | t | json }},
+        "outOfStock": {{ 'products.product.inventory.out_of_stock' | t | json }},
+        "backorder": {{ 'products.product.inventory.backorder' | t | json }},
+        "lowStock": {{ 'products.product.inventory.low_stock' | t: count: '{count}' | json }}
+      }
+    }
+  </script>
   {%- for option in product.options_with_values -%}
     {%- liquid
       assign option_position = option.position
@@ -46,9 +90,14 @@
       endif
     -%}
     <fieldset class="variant-picker__option">
-      <legend class="variant-picker__label field__label">
-        {{ option.name }} — <span data-selected-value>{{ selected_value }}</span>
-      </legend>
+      <legend class="variant-picker__label field__label">{{ option.name }} — <span data-selected-value>{{ selected_value }}</span></legend>
+
+      {%- if size_guide_content != blank and option_name_lower == 'size' -%}
+        <details class="variant-picker__size-guide">
+          <summary class="variant-picker__size-guide-trigger">{{ 'products.product.size_guide' | t }}</summary>
+          <div class="variant-picker__size-guide-panel prose">{{ size_guide_content }}</div>
+        </details>
+      {%- endif -%}
 
       {%- if display_style == 'dropdown' -%}
         <div class="field__control">
@@ -180,4 +229,4 @@
       {%- endif -%}
     </fieldset>
   {%- endfor -%}
-</div>
+</variant-picker>

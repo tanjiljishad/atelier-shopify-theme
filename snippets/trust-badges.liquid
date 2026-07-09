@@ -1,0 +1,24 @@
+{%- comment -%}
+  Trust badges (spec §5.4): thin-stroke icon + Small text rows — shipping,
+  returns, warranty, secure checkout. "Monochrome ink icons only; no colored
+  padlock clip-art" — the icons inherit currentColor like every other icon in
+  the sprite, no per-badge color setting.
+{%- endcomment -%}
+<ul class="trust-badges list-unstyled">
+  <li class="trust-badges__row">
+    {% render 'icon', name: 'truck', size: 18 %}
+    <span class="text-small">{{ 'products.product.trust.shipping' | t }}</span>
+  </li>
+  <li class="trust-badges__row">
+    {% render 'icon', name: 'rotate-ccw', size: 18 %}
+    <span class="text-small">{{ 'products.product.trust.returns' | t }}</span>
+  </li>
+  <li class="trust-badges__row">
+    {% render 'icon', name: 'shield-check', size: 18 %}
+    <span class="text-small">{{ 'products.product.trust.warranty' | t }}</span>
+  </li>
+  <li class="trust-badges__row">
+    {% render 'icon', name: 'lock', size: 18 %}
+    <span class="text-small">{{ 'products.product.trust.secure' | t }}</span>
+  </li>
+</ul>

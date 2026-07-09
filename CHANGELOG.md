@@ -3,6 +3,164 @@
 All notable changes to the Atelier theme are documented here, one entry per
 build milestone. Dates reflect when the milestone was completed.
 
+## Milestone 7 — Premium Product Experience
+
+**New components**
+Product gallery (desktop vertical stacked scroll + thumbnail rail, mobile
+swipe carousel + dot progress — one shared DOM, CSS repositions it per
+breakpoint; image/video/external video/3D model support via Shopify's own
+media filters; keyboard arrow navigation; scrollspy-driven thumb/dot sync;
+per-item loading skeleton), fullscreen zoom lightbox (scroll/pinch zoom to
+2.5×, arrows, focus-trapped), live variant switching (price/media/URL/SKU/
+availability update in place, unavailable combinations re-strike live, no
+reload), sticky buy box (title/vendor/badges/rating/price/inventory/variant
+picker/quantity/ATC/express checkout/shipping note/wishlist/compare/share/
+trust badges/accordions/SKU/type), AJAX add-to-cart (spinner → "Added ✓" →
+header cart count, real-form fallback on failure), size guide disclosure,
+product info accordions (Description/Materials & Care/Shipping & Returns/
+FAQ/Downloads, metafield-driven, hidden when empty), trust badge rows,
+"Complete the look" bundle (checkbox multi-select, combined price, single
+batched add-to-cart request), native product recommendations (Shopify's own
+engine, fetched async so it never delays first paint), recently viewed
+(localStorage snapshot, client-rendered), sticky mobile ATC bar (appears once
+the in-flow button scrolls away), reviews via a merchant-configured `@app`
+block slot (no review app integrated — clean placeholder architecture per
+spec).
+
+**Files created**
+`sections/related-products.liquid`; `snippets/product-gallery.liquid`,
+`product-media-item.liquid`, `product-lightbox.liquid`, `buy-box.liquid`,
+`trust-badges.liquid`, `product-accordions.liquid`, `share-button.liquid`,
+`sticky-add-to-cart.liquid`, `complete-the-look.liquid`,
+`product-recommendations.liquid`, `recently-viewed.liquid`;
+`assets/product-gallery.js`, `product-lightbox.js`, `variant-picker.js`,
+`product-form.js`, `sticky-add-to-cart.js`, `complete-the-look.js`,
+`product-recommendations.js`, `recently-viewed.js`, `share-button.js`.
+
+**Files modified**
+`sections/main-product.liquid` (full rebuild), `snippets/variant-picker.liquid`
+(upgraded from a plain div to a `<variant-picker>` custom element carrying a
+server-rendered variant/i18n JSON blob, + optional size-guide slot),
+`snippets/breadcrumb.liquid` (+`product` param), `snippets/icon-sprite.liquid`
+(+maximize, share-2, truck, rotate-ccw, shield-check, lock — gallery/lightbox
+arrows reuse the existing chevron-down rotation utility instead of new
+symbols), `assets/commerce-utils.js` (+`renderPriceHtml`, shared by
+variant-picker.js, sticky-add-to-cart.js, and recently-viewed.js so the
+sale/regular price markup shape lives in exactly one place), `assets/theme.js`
+(+9 dynamic import gates), `assets/theme.css` (+~1000 lines: sections 40–49),
+`config/settings_schema.json` (+"Product page" settings group — gallery
+ratio/thumbnail position, dynamic checkout/shipping note/trust badges/
+accordion toggle, recommendations/recently-viewed visibility),
+`config/settings_data.json`, `locales/en.default.json` (+~40 strings).
+
+**Architectural decisions**
+- **Gallery is one DOM, two layouts, zero JS branching on viewport** — same
+  trick as Milestone 6's filter sidebar/drawer split: desktop CSS stacks
+  every media item in a vertical scroll column with a thumbnail rail; mobile
+  CSS switches the identical markup to a horizontal scroll-snap carousel with
+  dots. Swipe/scroll is native browser behavior throughout (same philosophy
+  as `product-slider.js`) — JS only handles scrollspy, thumb-click-to-scroll,
+  arrow keys, and the zoom handoff.
+- **Lightbox is its own component, not `<theme-drawer>` with different CSS.**
+  A drawer slides in from a screen edge over a scrim; the lightbox centers
+  and fades/scales over the full viewport and owns zoom-stage state a drawer
+  has no concept of. It still depends on the same `createFocusTrap`/
+  `lockScroll`/`unlockScroll` primitives from `motion.js` every other overlay
+  uses, so focus containment and scroll-locking behave identically everywhere
+  — only the presentation and the zoom logic are unique to it.
+- **Variant data ships once, server-rendered, as JSON — not re-derived in
+  JS.** `variant-picker.liquid` embeds every variant's id/price/compare-at/
+  sku/inventory/media/options plus the handful of translated strings the live
+  updates need. `variant-picker.js` reads that JSON and rebuilds the price/
+  inventory markup client-side (via the shared `renderPriceHtml` helper) —
+  one source of truth for "what does this variant cost / how many are left,"
+  not a parallel client-side reimplementation of pricing or stock logic.
+- **ATC is a click listener on the button, never a form `submit` listener.**
+  Shopify's `payment_button` filter injects its own express-checkout buttons
+  into the same `<form>`, and those must submit it for real to reach
+  checkout. Intercepting the form's `submit` event would risk swallowing
+  those; only ever intercepting the one primary ATC button's click leaves
+  them untouched.
+- **Cart drawer is explicitly out of scope this milestone**, so "cart drawer
+  slides open" (spec §7 ATC feedback) isn't wired — ATC dispatches the same
+  `cart:updated` event the header's cart count has listened for since
+  Milestone 3, and stops at the button's own "Added ✓" feedback. Whichever
+  milestone builds the drawer only needs one more `cart:updated` listener;
+  nothing here changes.
+- **"Notify me" instead of a dead "Sold out" button.** Spec §7: an
+  unavailable variant combination stays a real, enabled, clickable control —
+  never `disabled`, only `aria-disabled` + a relabeled CTA. "Sold out" as
+  fixed text lives on the separate `product-labels` badge; the ATC button's
+  own label always reflects the *currently selected* variant's availability.
+- **Recently viewed stores a display snapshot, not just an id.** Unlike
+  wishlist/compare (which only ever re-render products already present on the
+  current page), recently viewed has to show products from pages the visitor
+  already left — there's no Liquid object for those on this page load.
+  Rather than an extra `/products/{handle}.js` fetch per stored item on every
+  PDP visit, a small snapshot (title/url/image/price) is written to
+  localStorage at view time and rendered straight from that — zero added
+  requests, at the cost of a stale price/title if a merchant edits either
+  later. A reasonable trade for a below-the-fold, non-transactional module.
+- **Recommendations fetch async via Shopify's own
+  `routes.product_recommendations_url`**, requesting a small dedicated
+  `related-products.liquid` section rather than re-rendering the (now much
+  heavier) `main-product` section itself for a recommendations request — same
+  fetch-and-extract pattern as `predictive-search.js`/`collection-filters.js`,
+  applied to Shopify's native recommendation engine instead of a custom one.
+  Never blocks the PDP's own first paint.
+- **Size guide is a `<details>` disclosure, not a new modal component.**
+  Scope call: a full measurement-table modal (unit toggle, diagram) wasn't in
+  this milestone's explicit checklist, and a disclosure reuses the exact same
+  native-first pattern `accordion-item.liquid` already established, rather
+  than introducing a second overlay system alongside the lightbox for one
+  optional, metafield-gated feature.
+- **Reviews are a bare `@app` block slot**, per instruction — no Judge.me/
+  Loox/Yotpo integration. The section reserves a labeled, anchor-linked
+  position (the buy box's rating line already links to `#Reviews-{{
+  section.id }}`) and renders whatever app blocks a merchant drops in via
+  `{% render block %}`; the theme has zero opinion on which app.
+
+**Bug fixes (caught before shipping)**
+`{% liquid %}...{% endliquid %}` isn't valid syntax (`liquid` is not a paired
+block tag) — a leftover `{% endliquid %}` in `buy-box.liquid` broke the whole
+file; removed. A hyphenated key (`data-product-form: true`) inside the
+`{% form %}` tag's parameter list is invalid Liquid — switched to `class:`
+and updated the JS selector to match. `<details>` (the size-guide disclosure)
+is not valid content inside `<legend>` per the HTML content model — a first
+draft nested it there; restructured as `<legend>` and `<details>` as
+siblings inside the `<fieldset>`, repositioned via CSS instead of markup
+nesting. `variant-picker.js` originally never wrote the live-selected variant
+id back into the form's hidden `id` input, so a switched variant would still
+add the *original* variant to cart; fixed as part of the same update that
+rewrites price/inventory/SKU. The sort-select rebinding gap found in the
+collection-filters follow-up (below) surfaced the same class of bug here
+early: `<product-recommendations>` had no explicit CSS `display`, so as an
+unknown custom element it would default to `display: inline` around its own
+grid content — given an explicit `display: block`, matching every other
+custom element's own convention. "Complete the look" and its outer section
+wrapper checked bundle size independently (`> 0` in one place, an internal
+`| where: 'available'` re-filter in the other) — a bundle of all-sold-out
+picks would render a visible, empty, card-tinted section; both gates now
+filter for availability and require at least 2 items (spec: "2–3 items")
+before rendering anything.
+
+**Known follow-ups for Milestone 8**
+The AJAX add-to-cart path (and the express checkout buttons alongside it)
+hasn't been checked against a live store with real payment methods enabled —
+`payment_button`'s output depends entirely on the merchant's Settings →
+Payments configuration, untestable from a static QA preview. 3D model
+(`model_viewer_tag`) and external video rendering are implemented per
+Shopify's documented filters but unverified against real model/video media,
+since none exists in the QA preview's product set. Recently viewed's
+snapshot-at-view-time approach means a merchant price change won't reflect
+in an already-stored snapshot until the visitor revisits that product page —
+acceptable for now, worth a TTL or revalidation pass if it becomes a support
+question. Cart drawer (explicitly out of scope here) is the natural
+Milestone 8: `cart:updated` is already dispatched everywhere it needs to be
+listened for.
+
+---
+
 ## Milestone 6 — Collection Experience
 
 **New components**

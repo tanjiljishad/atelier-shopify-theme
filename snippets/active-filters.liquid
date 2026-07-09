@@ -37,8 +37,20 @@
     {%- endfor -%}
 
     {%- if has_price_filter -%}
+      {%- liquid
+        assign price_min = price_filter.min_value.value | money
+        assign price_max = price_filter.max_value.value | money
+      -%}
       <a href="{{ price_filter.url_to_remove }}" class="active-filters__chip">
-        <span>{{ price_filter.min_value.value | money }} – {{ price_filter.max_value.value | money }}</span>
+        <span>
+          {%- if price_filter.min_value.value != blank and price_filter.max_value.value != blank -%}
+            {{ price_min }} – {{ price_max }}
+          {%- elsif price_filter.min_value.value != blank -%}
+            {{ 'collections.filters.price_min_only' | t: price: price_min }}
+          {%- else -%}
+            {{ 'collections.filters.price_max_only' | t: price: price_max }}
+          {%- endif -%}
+        </span>
         {% render 'icon', name: 'x', size: 12 %}
       </a>
     {%- endif -%}

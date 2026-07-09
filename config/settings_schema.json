@@ -411,6 +411,81 @@
     ]
   },
   {
+    "name": "Product page",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Gallery"
+      },
+      {
+        "type": "select",
+        "id": "product_gallery_image_ratio",
+        "label": "Image ratio",
+        "options": [
+          { "value": "4/5", "label": "Portrait (4:5)" },
+          { "value": "1/1", "label": "Square (1:1)" },
+          { "value": "natural", "label": "Natural (per image)" }
+        ],
+        "default": "4/5"
+      },
+      {
+        "type": "select",
+        "id": "product_gallery_thumbnail_position",
+        "label": "Thumbnail position",
+        "options": [
+          { "value": "left", "label": "Left of gallery" },
+          { "value": "bottom", "label": "Below gallery" }
+        ],
+        "default": "left"
+      },
+      {
+        "type": "header",
+        "content": "Buy box"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_show_dynamic_checkout",
+        "label": "Show dynamic checkout button",
+        "default": true,
+        "info": "Uses whichever express payment methods (Shop Pay, PayPal, etc.) are already enabled in Settings → Payments."
+      },
+      {
+        "type": "checkbox",
+        "id": "product_show_shipping_estimate",
+        "label": "Show shipping estimate line",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_show_trust_badges",
+        "label": "Show trust badges",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_accordion_single_open",
+        "label": "Only one accordion open at a time",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Recommendations"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_show_recommendations",
+        "label": "Show product recommendations",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_show_recently_viewed",
+        "label": "Show recently viewed",
+        "default": true
+      }
+    ]
+  },
+  {
     "name": "Animations",
     "settings": [
       {

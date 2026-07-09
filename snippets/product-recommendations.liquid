@@ -1,0 +1,26 @@
+{%- comment -%}
+  Recommendations wrapper (spec §7 "recommendations", §16 "cross-sell/upsell
+  ... source-agnostic"). Renders a skeleton grid immediately, then
+  <product-recommendations> (assets/product-recommendations.js) fetches
+  sections/related-products.liquid via Shopify's own recommendation endpoint
+  and swaps it in — the actual product matching is entirely Shopify's native
+  engine, nothing custom to maintain, and it never blocks/delays the PDP's
+  own first paint (spec's LCP requirement) since it loads after.
+
+  Accepts: product (required).
+{%- endcomment -%}
+{%- if settings.product_show_recommendations -%}
+  <section class="section section--rhythm">
+    {% render 'section-heading', heading: 'products.product.recommendations_heading' | t, align: 'left' %}
+    <product-recommendations
+      class="product-recommendations"
+      data-url="{{ routes.product_recommendations_url }}?section_id=related-products&product_id={{ product.id }}&limit=4&intent=related"
+    >
+      <div class="grid grid-cols-4">
+        {%- for i in (1..4) -%}
+          {% render 'skeleton', type: 'card' %}
+        {%- endfor -%}
+      </div>
+    </product-recommendations>
+  </section>
+{%- endif -%}

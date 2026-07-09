@@ -1,0 +1,30 @@
+{%- comment -%}
+  Recommendations content, fetched asynchronously by
+  snippets/product-recommendations.liquid via routes.product_recommendations_url
+  (Shopify's native recommendation engine — no custom "you might also like"
+  logic). Kept as its own tiny section rather than inline in main-product.liquid
+  so it can be fetched by section id and dropped in without blocking the
+  initial product-page render (spec's LCP/performance requirements: the PDP's
+  own image + buy box are what matter for first paint, not related products
+  below the fold).
+
+  `product` doesn't need deriving here: Shopify's recommendations endpoint
+  (routes.product_recommendations_url) injects it into this section's scope
+  itself from the `product_id` query param the fetch URL supplies.
+{%- endcomment -%}
+{% recommendations product: product, limit: 4, intent: 'related' %}
+  {%- if recommendations.performed and recommendations.products_count > 0 -%}
+    <div class="grid grid-cols-4">
+      {%- for recommended_product in recommendations.products -%}
+        {% render 'product-card', product: recommended_product %}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+{% endrecommendations %}
+
+{% schema %}
+{
+  "name": "Related products",
+  "settings": []
+}
+{% endschema %}

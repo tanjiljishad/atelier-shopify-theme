@@ -5,14 +5,30 @@
   via CSS only (text-overflow), never by cutting the Liquid string, so the
   link itself always stays intact and clickable.
 
-  Accepts: collection (optional — renders the collection-specific trail when given).
+  Accepts:
+  - collection (optional): renders the collection-specific trail when given.
+  - product (optional): renders Home → [collection, if reached via one] →
+    product title. The global `collection` object is already populated by
+    Shopify whenever a product is viewed through a /collections/x/products/y
+    URL, so this reuses it rather than needing a setting to pick one.
 {%- endcomment -%}
 <nav class="breadcrumb" aria-label="{{ 'accessibility.breadcrumb' | t }}">
   <ol class="breadcrumb__list list-unstyled">
     <li class="breadcrumb__item">
       <a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a>
     </li>
-    {%- if collection -%}
+    {%- if product -%}
+      {%- if collection -%}
+        <li class="breadcrumb__item" aria-hidden="true">/</li>
+        <li class="breadcrumb__item">
+          <a href="{{ collection.url }}">{{ collection.title }}</a>
+        </li>
+      {%- endif -%}
+      <li class="breadcrumb__item" aria-hidden="true">/</li>
+      <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">
+        {{ product.title }}
+      </li>
+    {%- elsif collection -%}
       <li class="breadcrumb__item" aria-hidden="true">/</li>
       <li class="breadcrumb__item">
         <a href="{{ routes.collections_url }}">{{ 'general.collections' | t }}</a>

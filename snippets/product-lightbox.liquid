@@ -1,0 +1,56 @@
+{%- comment -%}
+  Fullscreen zoom lightbox (spec §5.4 "Zoom"): ivory ground, 1px close, arrows,
+  scroll/pinch zoom to 2.5×. A distinct component from <theme-drawer> rather
+  than a forced reuse of it — a drawer slides in from a screen edge over a
+  scrim; this centers and fades/scales over the whole viewport with its own
+  zoom-stage behavior, different enough geometry that forcing the edge-anchored
+  drawer to also do this would need more override CSS than just building it.
+  It still reuses the same underlying primitives a drawer depends on
+  (createFocusTrap/lockScroll/unlockScroll from motion.js) so focus containment
+  and scroll-locking behave identically to every other overlay in the theme.
+
+  One lightbox per product, populated from the same product.media list the
+  gallery renders — assets/product-gallery.js opens it at whichever index was
+  clicked rather than each gallery item owning its own lightbox instance.
+
+  Accepts: product (required).
+{%- endcomment -%}
+<product-lightbox id="ProductLightbox-{{ product.id }}" class="lightbox" data-product-lightbox hidden>
+  <div class="lightbox__scrim" data-lightbox-dismiss></div>
+  <div class="lightbox__panel" role="dialog" aria-modal="true" aria-label="{{ 'products.product.gallery.lightbox_label' | t }}">
+    <button type="button" class="lightbox__close" data-lightbox-close aria-label="{{ 'general.close' | t }}">
+      {% render 'icon', name: 'plus', size: 24, class: 'icon--rotate-45' %}
+    </button>
+
+    <button type="button" class="lightbox__arrow lightbox__arrow--prev" data-lightbox-prev aria-label="{{ 'general.previous' | t }}">
+      {% render 'icon', name: 'chevron-down', size: 24, class: 'icon--rotate-neg90' %}
+    </button>
+    <button type="button" class="lightbox__arrow lightbox__arrow--next" data-lightbox-next aria-label="{{ 'general.next' | t }}">
+      {% render 'icon', name: 'chevron-down', size: 24, class: 'icon--rotate-90' %}
+    </button>
+
+    <div class="lightbox__stage" data-lightbox-stage>
+      {%- for media in product.media -%}
+        <div class="lightbox__item" data-lightbox-item data-media-index="{{ forloop.index0 }}"{% unless forloop.first %} hidden{% endunless %}>
+          {%- if media.media_type == 'image' -%}
+            <img
+              class="lightbox__image"
+              data-lightbox-zoomable
+              src="{{ media.preview_image | image_url: width: 2048 }}"
+              srcset="{{ media.preview_image | image_url: width: 800 }} 800w, {{ media.preview_image | image_url: width: 1400 }} 1400w, {{ media.preview_image | image_url: width: 2048 }} 2048w"
+              sizes="100vw"
+              width="{{ media.preview_image.width }}"
+              height="{{ media.preview_image.height }}"
+              alt="{{ media.alt | default: product.title | escape }}"
+              loading="lazy"
+            >
+          {%- else -%}
+            {% render 'product-media-item', media: media, context: 'lightbox' %}
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <div class="lightbox__counter" data-lightbox-counter aria-live="polite"></div>
+  </div>
+</product-lightbox>

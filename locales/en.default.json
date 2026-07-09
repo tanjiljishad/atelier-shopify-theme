@@ -47,11 +47,21 @@
       "add_error": "Couldn't add",
       "wishlist_add": "Add to wishlist",
       "compare_add": "Add to compare",
+      "share": "Share",
+      "share_copied": "Link copied",
       "new": "New",
       "preorder": "Preorder",
       "sale_percent": "Sale −{{ percent }}%",
       "low_stock": "Only {{ count }} left",
       "rating": "Rated {{ rating }} out of 5 stars, based on {{ count }} reviews",
+      "reviews": "reviews",
+      "notify_me": "Notify me",
+      "size_guide": "Size guide",
+      "sku_label": "SKU",
+      "type_label": "Type",
+      "shipping_estimate": "Estimated delivery in 3–5 business days",
+      "recommendations_heading": "You may also like",
+      "recently_viewed_heading": "Recently viewed",
       "price": {
         "sale_price": "Sale price",
         "regular_price": "Regular price"
@@ -61,6 +71,33 @@
         "out_of_stock": "Out of stock",
         "backorder": "Available on backorder",
         "low_stock": "Only {{ count }} left"
+      },
+      "gallery": {
+        "label": "Product media",
+        "slide_label": "{{ index }} of {{ total }}",
+        "zoom": "Zoom image",
+        "thumbnails": "Product media thumbnails",
+        "view_media": "View media {{ index }}",
+        "lightbox_label": "Product image zoom"
+      },
+      "trust": {
+        "shipping": "Free shipping over a minimum order",
+        "returns": "30-day returns",
+        "warranty": "1-year warranty",
+        "secure": "Secure checkout"
+      },
+      "accordions": {
+        "description": "Description",
+        "materials_care": "Materials & care",
+        "shipping_returns": "Shipping & returns",
+        "faq": "FAQ",
+        "documents": "Downloads",
+        "download": "Download"
+      },
+      "bundle": {
+        "title": "Complete the look",
+        "total": "Total",
+        "add_selected": "Add selected"
       }
     }
   },
@@ -70,6 +107,8 @@
       "filter": "Filter",
       "price_from": "From",
       "price_to": "To",
+      "price_min_only": "{{ price }}+",
+      "price_max_only": "Up to {{ price }}",
       "clear_all": "Clear all",
       "show_results": "Show {{ count }} results"
     },

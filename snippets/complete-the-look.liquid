@@ -1,0 +1,50 @@
+{%- comment -%}
+  "Complete the look" bundle (spec §7): 2–3 items with checkboxes + combined
+  price + "Add selected". Rows reuse checkbox.liquid and responsive-image.liquid
+  rather than the full product-card (too heavy visually for a compact bundle
+  row — no hover states, quick-add, or badges needed here). assets/
+  complete-the-look.js recomputes the combined price on toggle and adds every
+  checked item in a single /cart/add.js request (Shopify's items: [] batch
+  form), not one request per item.
+
+  Accepts: products (required): array of product objects (from this section's
+  blocks), each assumed to have a single relevant variant (its
+  selected_or_first_available_variant).
+{%- endcomment -%}
+{%- liquid
+  assign bundle_products = products | where: 'available'
+  assign initial_total = 0
+  for bundle_product in bundle_products
+    assign initial_total = initial_total | plus: bundle_product.selected_or_first_available_variant.price
+  endfor
+-%}
+{%- if bundle_products.size >= 2 -%}
+  <div class="complete-the-look" data-complete-the-look>
+    <h2 class="complete-the-look__title text-h4">{{ 'products.product.bundle.title' | t }}</h2>
+
+    <div class="complete-the-look__items">
+      {%- for bundle_product in bundle_products -%}
+        {%- assign bundle_variant = bundle_product.selected_or_first_available_variant -%}
+        <div class="complete-the-look__item" data-price="{{ bundle_variant.price }}">
+          {% render 'checkbox', name: 'complete-the-look', value: bundle_variant.id, checked: true, label: bundle_product.title, extra_class: 'complete-the-look__checkbox', id: 'CompleteTheLook-' | append: forloop.index %}
+          <a href="{{ bundle_product.url }}" class="complete-the-look__media aspect-ratio" style="aspect-ratio: 1/1;" tabindex="-1" aria-hidden="true">
+            {% render 'responsive-image', image: bundle_product.featured_image, sizes: '80px', wrap: false %}
+          </a>
+          <div class="complete-the-look__info">
+            <a href="{{ bundle_product.url }}" class="complete-the-look__product-title">{{ bundle_product.title }}</a>
+            {% render 'price', product: bundle_product, size: 'card' %}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <div class="complete-the-look__footer">
+      <span class="complete-the-look__total">
+        {{ 'products.product.bundle.total' | t }}: <span data-complete-the-look-total>{{ initial_total | money }}</span>
+      </span>
+      <button type="button" class="btn btn--primary" data-complete-the-look-add data-added-label="{{ 'products.product.added' | t }}">
+        <span class="btn__label">{{ 'products.product.bundle.add_selected' | t }}</span>
+      </button>
+    </div>
+  </div>
+{%- endif -%}

@@ -1,0 +1,29 @@
+{%- comment -%}
+  Sticky mobile ATC bar (spec §7 "Mobile"): glass, 64px — thumb + price +
+  "Add to cart" — appears once the in-flow ATC button scrolls out of view.
+  Mobile only (CSS hides it at the desktop breakpoint, where the buy box
+  itself is already sticky in the right-hand column).
+
+  Its button doesn't duplicate the add-to-cart request: assets/sticky-add-to-
+  cart.js simply forwards a click to the real [data-product-atc] button, so
+  assets/product-form.js's AJAX-add/spinner/"Added ✓" logic runs exactly
+  once, in exactly one place.
+
+  Accepts: product (required).
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign variant_image = current_variant.featured_image | default: product.featured_image
+-%}
+<div class="sticky-atc" data-sticky-atc hidden>
+  <div class="sticky-atc__media aspect-ratio" style="aspect-ratio: 1/1;">
+    {% render 'responsive-image', image: variant_image, sizes: '48px', wrap: false, class: 'sticky-atc__image' %}
+  </div>
+  <div class="sticky-atc__info">
+    <span class="sticky-atc__title">{{ product.title }}</span>
+    <span data-sticky-atc-price>{% render 'price', product: product, size: 'card' %}</span>
+  </div>
+  <button type="button" class="btn btn--primary sticky-atc__button" data-sticky-atc-button>
+    <span class="btn__label">{{ 'products.product.add_to_cart' | t }}</span>
+  </button>
+</div>

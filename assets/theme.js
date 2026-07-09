@@ -96,3 +96,22 @@ if (document.querySelector('[data-collection-section]')) {
 if (document.querySelector('[data-grid-switcher]')) {
   import('./collection-grid.js').then(({ initCollectionGrid }) => initCollectionGrid());
 }
+if (document.querySelector('product-gallery')) import('./product-gallery.js');
+if (document.querySelector('product-lightbox')) import('./product-lightbox.js');
+if (document.querySelector('variant-picker')) import('./variant-picker.js');
+if (document.querySelector('product-recommendations')) import('./product-recommendations.js');
+if (document.querySelector('.buy-box__form')) {
+  import('./product-form.js').then(({ initProductForms }) => initProductForms());
+}
+if (document.querySelector('[data-sticky-atc]')) {
+  import('./sticky-add-to-cart.js').then(({ initStickyAddToCart }) => initStickyAddToCart());
+}
+if (document.querySelector('[data-complete-the-look]')) {
+  import('./complete-the-look.js').then(({ initCompleteTheLook }) => initCompleteTheLook());
+}
+if (document.querySelector('[data-recently-viewed]')) {
+  import('./recently-viewed.js').then(({ initRecentlyViewed }) => initRecentlyViewed());
+}
+if (document.querySelector('[data-share-button]')) {
+  import('./share-button.js').then(({ initShareButtons }) => initShareButtons());
+}

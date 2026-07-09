@@ -9,6 +9,7 @@
   - type: 'text' (default) | 'email' | 'tel' | 'number' | 'password' | 'textarea' | 'select'
   - name: form field name, defaults to id
   - value, placeholder, autocomplete, required (bool), rows (textarea, default 4)
+  - min, max: passed through as-is on number inputs
   - options: for type 'select' — array of { value, label }
   - error: error message string — presence puts the field in its error state
   - success_message: presence puts the field in its success state (mutually
@@ -75,6 +76,8 @@
         value="{{ value }}"
         {% if placeholder %}placeholder="{{ placeholder | escape }}"{% endif %}
         {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+        {% if min %}min="{{ min }}"{% endif %}
+        {% if max %}max="{{ max }}"{% endif %}
         {% if required %}required aria-required="true"{% endif %}
         {% if has_message %}aria-describedby="{{ message_id }}"{% endif %}
         {% if error %}aria-invalid="true"{% endif %}

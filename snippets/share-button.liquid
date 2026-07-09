@@ -1,0 +1,20 @@
+{%- comment -%}
+  Share button: native Web Share API on devices that support it (share sheet
+  with the product title + URL), clipboard-copy fallback everywhere else.
+  Reuses .tooltip__content's exact visual treatment (theme.css) for the
+  "Copied" confirmation bubble rather than duplicating that CSS, but doesn't
+  render tooltip.liquid itself — a share confirmation is a transient status
+  message (role="status", aria-live), not a hover description (role="tooltip"),
+  different enough semantics to not force the same markup.
+
+  Accepts: product (required).
+{%- endcomment -%}
+<div class="share-button">
+  <button type="button" class="buy-box__action-button" data-share-button data-share-title="{{ product.title | escape }}" data-share-url="{{ product.url | default: request.path }}" aria-label="{{ 'products.product.share' | t }}">
+    {% render 'icon', name: 'share-2', size: 18 %}
+    <span>{{ 'products.product.share' | t }}</span>
+  </button>
+  <span class="tooltip__content tooltip__content--top" data-share-confirmation role="status" aria-live="polite">
+    {{ 'products.product.share_copied' | t }}
+  </span>
+</div>

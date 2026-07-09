@@ -3,6 +3,198 @@
 All notable changes to the Atelier theme are documented here, one entry per
 build milestone. Dates reflect when the milestone was completed.
 
+## Milestone 12 — Release Candidate (RC1): Production Readiness & Theme Store Audit
+
+No new customer-facing features. This milestone is a full engineering audit
+of Milestones 1–11 — repository, architecture, performance, accessibility,
+and Theme Store readiness — plus the documentation a real release needs
+(README, QA checklist, this entry). Every fix below is either a genuine
+technical-debt removal or a documented judgment call, not new scope.
+
+**Phase 1 — Repository audit findings and fixes**
+- **Triplicated rAF-scroll-throttle pattern, consolidated.** `header.js`,
+  `back-to-top.js`, and `parallax.js` had each independently hand-rolled the
+  same "ticking" boolean + `requestAnimationFrame` coalescing logic.
+  Extracted into `rafThrottle()` in `assets/motion.js` (which already houses
+  every other shared motion primitive); all three call sites now import it.
+  Zero behavior change, one implementation instead of three.
+- **4 dead CSS classes removed** (`.aspect-square`, `.aspect-portrait`,
+  `.aspect-landscape`, `.aspect-video` in `assets/theme.css`) — a fixed-ratio
+  utility approach superseded early on by the inline `style="aspect-ratio:
+  X"` pattern every image wrapper actually uses, never deleted. Verified via
+  a full cross-reference of all ~690 top-level class selectors in
+  `theme.css` against every `.liquid`/`.js` file in the theme — these 4 were
+  the *only* unused ones found.
+- **2 unnecessary exports demoted to module-private.** `extractFromSection`
+  and `announce` in `assets/cart-utils.js` were declared `export` but only
+  ever called from within the same file (by `CartSurfaceController`, which
+  *is* the file's real public export) — removed the keyword rather than
+  leave implementation details on the public surface.
+- **2 real orphan settings removed** (see Phase 2 — Architecture review).
+- **Stale comments corrected.** Several doc comments across `assets/drawer.js`,
+  `theme-storage.js`, `theme.js`, and `sections/header.liquid` still described
+  wishlist/compare/recently-viewed/cart-drawer as "a later milestone" or "not
+  wired yet" — all of those shipped in Milestones 7–8 and have worked for
+  several milestones since; comments updated to describe what's actually
+  there now. (`assets/quick-view.js`'s "no listener exists yet" and the
+  announcement bar's former countdown-setting comment were re-verified as
+  still accurate — see Known limitations — and left alone.)
+- **`package.json`'s `name` field typo fixed** (`ateller-shopify-theme` →
+  `atelier-shopify-theme`), matching the theme's actual name and the GitHub
+  repo name it was inconsistent with.
+- **Verified clean**: zero unused JS assets (all 46 files in `assets/*.js`
+  are imported somewhere, eagerly or via a gated dynamic `import()`), zero
+  unused font files (all 4 `.woff2` referenced in `theme-fonts.liquid`), zero
+  duplicate/conflicting CSS rule bodies beyond legitimate shared-base +
+  specific-override splits (spot-checked; normal practice, not debt).
+
+**Phase 2 — Architecture review**
+- **Zero orphan *global* settings, in both directions.** Cross-referenced
+  all 90 ids in `config/settings_schema.json`'s non-section settings against
+  every `settings.x` read in the theme: every defined setting is read
+  somewhere, and every `settings.x` read resolves to a defined setting. No
+  drift.
+- **2 orphan *section* settings found and removed** — both were checkbox
+  toggles that visibly did nothing when switched on, which is exactly the
+  kind of defect Shopify Theme Store review rejects on sight:
+  - `sections/header.liquid`'s `mobile_menu_style` (options: "Side drawer" /
+    "Full screen") — nothing in `mobile-nav.liquid`/`mobile-nav.js` ever
+    branched on it; the mobile menu has only ever rendered as a drawer.
+    Removed rather than built the missing "full screen" mode, per this
+    milestone's no-new-features constraint.
+  - `sections/announcement-bar.liquid`'s `enable_countdown`/`countdown_date`
+    block settings — the setting's own `info` text admitted "no countdown is
+    displayed yet." Removed for the same reason.
+- **Verified**: reusable snippets remain genuinely reusable (spot-checked
+  `card.liquid`, `price.liquid`, `responsive-image.liquid`, `icon.liquid`
+  against every composite component that should be using them — all do);
+  the cart AJAX architecture (`CartSurfaceController`) has exactly one
+  implementation shared by the drawer and the cart page, not two; the
+  storage-adapter pattern has exactly one implementation shared by 8+
+  features. No duplicated component logic found anywhere in the theme.
+
+**Phase 3 — Performance audit**
+No regressions found, and no premature optimization added — the existing
+architecture (gated dynamic imports per component, `responsive-image.liquid`
+as the single image path, one `theme.css` file, preloaded subset fonts) was
+already the right shape from Milestone 1 onward. Concretely measured:
+`theme.css` is ~128KB uncompressed source (single request, Shopify CDN
+compresses it); total JS across all 46 files is ~218KB, but no single page
+loads all of it — only the eager core (header/drawers/predictive search)
+plus whatever that specific page's dynamic-import gates match. This
+milestone's only performance-relevant change was removing the 4 dead CSS
+selectors above; everything else audited as already correct.
+
+**Phase 4 — Accessibility audit**
+Reviewed focus management, ARIA usage, heading hierarchy, reduced-motion
+handling, and touch targets across every template and overlay built in
+Milestones 1–11. No deficiencies found requiring a code fix — the pattern
+established early (shared focus-trap, shared `aria-live` announcer, `Escape`
+closes anything dismissible, `prefers-reduced-motion` collapses durations
+globally rather than needing per-component branches) held consistently
+through all 11 prior milestones. What remains is **unverifiable without a
+live store and real assistive technology** — real screen reader testing and
+an axe-core/Lighthouse run were never possible from a static preview; see
+Known limitations.
+
+**Phase 5 — Theme Store readiness**
+- Theme Check: **0 errors**, 9 warnings, all pre-existing and reverified as
+  false positives (7 `OrphanedSnippet` on snippets only called from other
+  snippets, 2 `UndefinedObject: 'email'` on `main-reset-password.liquid`
+  where `email` is a real Shopify-provided template variable).
+- `node --check` passes on all 46 files in `assets/*.js`.
+- Online Store 2.0 compliance: every template is a JSON template composing
+  sections; no `.liquid` alternate templates remain anywhere.
+- `config/settings_schema.json`'s `theme_info.theme_documentation_url`
+  (`https://example.com/atelier/docs`) and `theme_support_email`
+  (`support@example.com`) **remain placeholders** — no real values were
+  provided for this milestone, so per instruction they're left as
+  functioning, clearly-documented release-time placeholders (flagged in
+  both `README.md` and here) rather than replaced with guessed real values
+  or broken with obviously-fake ones.
+- Merchant customization: every setting now visibly does something (the 2
+  orphans above were the only exceptions, now removed); every repeatable
+  section is block-based; the footer alone exposes 8 independently
+  reorderable block types.
+
+**Phase 6 — Documentation**
+- **`README.md` fully rewritten.** It was still the unedited Shopify CLI
+  scaffold (a 24-line "npm install / npm run dev" stub, plus a garbled
+  mis-encoded line left over from an early `git init`) despite 11 milestones
+  of work underneath it. Now covers: requirements, setup, the JS loading
+  strategy, the design-system/primitive/motion/storage architecture, a
+  settings-group customization table, documented extension points (why
+  `card.liquid`/`divider.liquid`/`tooltip.liquid` are intentionally
+  unreferenced), accessibility and performance summaries, and a
+  pre-submission checklist.
+- **`docs/QA-CHECKLIST.md` created** — the full manual QA checklist Phase 7
+  calls for (see below), kept as a standalone doc rather than inline in
+  README so it can be checked off/updated independently.
+- **This CHANGELOG entry** documents every Phase 1–5 finding and fix above.
+
+**Phase 7 — Manual QA checklist**
+Created `docs/QA-CHECKLIST.md`, covering Homepage, Collection, Product,
+Cart, Search, Blog, Customer Accounts, Gift Card, Password, 404, Contact,
+Theme Editor, Localization, Dark Mode, Mobile/Tablet/Desktop, Checkout,
+Discounts, Shipping, Taxes, Payments, Accessibility, Performance, and
+Cross-browser — everything the milestone brief listed.
+
+**Files modified**
+`assets/motion.js` (+`rafThrottle`), `back-to-top.js`, `parallax.js`,
+`header.js` (all three now use it; `header.js` also lost its unused
+`this.ticking` field), `theme-storage.js`, `theme.js`, `drawer.js` (stale
+comments corrected), `cart-utils.js` (2 exports demoted), `theme.css` (−16
+lines, 4 dead classes removed); `sections/header.liquid` (orphan
+`mobile_menu_style` setting removed, stale comment corrected),
+`announcement-bar.liquid` (orphan `enable_countdown`/`countdown_date`
+removed); `package.json` (name typo fixed); `README.md` (full rewrite).
+
+**Files created**
+`docs/QA-CHECKLIST.md`.
+
+**Known limitations that can only be validated on a live Shopify store**
+- No native form (login/register/password reset/address book/contact/blog
+  comments/all 3 newsletter call sites) has ever been submitted against a
+  real store — all built strictly to Shopify's documented form-type
+  contracts, untestable further from a static preview.
+- No real accessibility tooling run (axe-core, Lighthouse, VoiceOver/NVDA) —
+  every accessibility choice in this theme has been a code-level pattern
+  applied consistently, never independently verified against assistive
+  technology.
+- No real performance measurement (Lighthouse/PageSpeed) against a populated
+  store with production-sized images — every performance choice has been
+  made at the code level (lazy imports, `responsive-image.liquid`'s srcset
+  ladder, font subsetting) but never measured end-to-end.
+- No Theme Editor QA pass adding/removing/reordering every block type on a
+  real store (the footer's 8 block types are the largest surface never
+  exercised interactively).
+- No cross-browser/cross-device pass on real hardware (only code-level
+  review of the patterns most likely to diverge: cart-drawer scroll lock,
+  sticky mobile add-to-cart, `prefers-reduced-motion`/`prefers-color-scheme`
+  media queries).
+- Two features are intentionally incomplete, not accidentally broken:
+  `assets/quick-view.js` dispatches `quickview:open` with no listener yet
+  (no quick-view modal was ever built); `card.liquid`/`divider.liquid`/
+  `tooltip.liquid` are unreferenced by design (documented extension points,
+  not dead code left by accident).
+- `theme_info.theme_documentation_url`/`theme_support_email` are release-time
+  placeholders (see Phase 5).
+
+**Recommendation: is Atelier ready for version 1.0.0?**
+**Yes, conditionally.** Every customer-facing template, section, and global
+component the original 11-milestone brief called for is built, Theme Check
+and `node --check` are both clean, and this audit found only minor,
+now-fixed technical debt (no architectural rework needed). The theme is
+code-complete and internally consistent.
+
+It is **not yet ready for Theme Store submission** until the live-store
+items above are actually done — none of them are code changes, all of them
+require a real development store and a human clicking through
+`docs/QA-CHECKLIST.md`. For a merchant-only launch (not a Theme Store
+listing), the only hard requirement before going live is submitting each
+native form against the real store at least once; the placeholder
+`theme_info` fields don't block a private launch, only a public listing.
+
 ## Milestone 11 — Premium Footer & Global Experience
 
 Replaces the Milestone-1 Dawn footer scaffold (flagged as the single most

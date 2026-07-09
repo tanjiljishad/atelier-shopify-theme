@@ -2,9 +2,10 @@
  * Theme entry point. Loaded as `type="module"` (see layout/theme.liquid), so it
  * already runs after the DOM has parsed — no DOMContentLoaded wrapper needed.
  *
- * Exposes `window.Atelier` as the shared namespace future components hang off of
- * (e.g. `Atelier.motion`, `Atelier.storage` for the wishlist/compare/recently-viewed
- * work in a later milestone). Reads `window.Atelier.settings`, a small inline object
+ * Exposes `window.Atelier` as the shared namespace every component hangs off
+ * of (e.g. `Atelier.motion`, `Atelier.storage` — used by wishlist, compare,
+ * recently-viewed, and every dismissible overlay). Reads `window.Atelier.settings`,
+ * a small inline object
  * layout/theme.liquid writes out from the merchant's theme settings, since Liquid
  * values can't otherwise reach an external, cached .js asset.
  */

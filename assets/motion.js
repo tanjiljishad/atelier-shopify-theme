@@ -9,6 +9,7 @@
  *   - createFocusTrap(el)      — reusable focus containment for overlays
  *   - prefersReducedMotion()   — single check, mirrors the CSS media query
  *   - performanceModeEnabled() — mirrors settings.performance_mode
+ *   - rafThrottle(fn)          — coalesces a high-frequency event to one rAF/frame
  *
  * Both reduced-motion and performance-mode gate the *editorial* effects (Ken-Burns,
  * parallax, hover-crossfade, shimmer) that components will implement themselves;
@@ -16,6 +17,31 @@
  * those are the two pieces of motion infrastructure that are actually shared by
  * many future components.
  */
+
+/**
+ * Wraps `fn` so that, no matter how often the returned function is called
+ * (e.g. on every `scroll` event), the wrapped `fn` runs at most once per
+ * animation frame — the last call in a frame wins. Milestone 11's audit
+ * found this exact "ticking" boolean pattern hand-rolled three times
+ * (header.js, back-to-top.js, parallax.js); extracted here so there's one
+ * throttle implementation instead of three.
+ *
+ * @param {(...args: any[]) => void} fn
+ * @returns {(...args: any[]) => void}
+ */
+export function rafThrottle(fn) {
+  let ticking = false;
+  let lastArgs;
+  return (...args) => {
+    lastArgs = args;
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(() => {
+      ticking = false;
+      fn(...lastArgs);
+    });
+  };
+}
 
 export function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;

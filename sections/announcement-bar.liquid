@@ -94,20 +94,6 @@
           "type": "url",
           "id": "link",
           "label": "Link (optional)"
-        },
-        {
-          "type": "checkbox",
-          "id": "enable_countdown",
-          "label": "Enable countdown",
-          "default": false,
-          "info": "Reserved for a future milestone. The end date is stored, but no countdown is displayed yet."
-        },
-        {
-          "type": "text",
-          "id": "countdown_date",
-          "label": "Countdown end date",
-          "info": "ISO format, e.g. 2026-12-31T23:59:59.",
-          "visible_if": "{{ block.settings.enable_countdown == true }}"
         }
       ]
     }

@@ -1,7 +1,7 @@
 /**
  * <theme-drawer> — generic edge-anchored sliding panel: scrim, focus trap,
  * Escape-to-close, scroll lock. This is the shared base for every drawer in
- * the theme (mobile nav now; search now; cart in a later milestone) so that
+ * the theme (mobile nav, search, cart — sections/cart-drawer.liquid) so that
  * open/close/focus/scroll-lock behavior is implemented exactly once. Extend
  * it (see assets/mobile-nav.js) when a drawer needs additional behavior on
  * top of the generic open/close contract.

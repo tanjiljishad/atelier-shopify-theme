@@ -1408,22 +1408,6 @@ tab-group [role='tabpanel'] {
   justify-content: center;
 }
 
-.aspect-square {
-  aspect-ratio: 1 / 1;
-}
-
-.aspect-portrait {
-  aspect-ratio: 4 / 5;
-}
-
-.aspect-landscape {
-  aspect-ratio: 3 / 2;
-}
-
-.aspect-video {
-  aspect-ratio: 16 / 9;
-}
-
 .hidden {
   display: none;
 }

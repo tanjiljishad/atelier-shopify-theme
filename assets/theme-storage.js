@@ -1,7 +1,8 @@
 /**
  * Storage adapter abstraction.
  *
- * Wishlist, Compare, and Recently Viewed (a later milestone) all persist data
+ * Wishlist, Compare, Recently Viewed, the announcement bar's dismissal, dark
+ * mode, cookie consent, the age gate, and the email popup all persist data
  * client-side. Rather than calling localStorage directly from each feature, they
  * depend on this small interface. Swapping to a server-backed implementation later
  * (a customer-metafield API, a wishlist app, etc.) means writing one new adapter

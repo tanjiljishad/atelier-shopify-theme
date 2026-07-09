@@ -6,10 +6,8 @@
 
   Wishlist/compare counts can't be known server-side (they live in
   localStorage — see assets/theme-storage.js), so they render as 0/hidden and
-  assets/header.js corrects them on load from the same storage adapter a
-  later milestone's add-to-wishlist/compare actions will write to. That
-  milestone only needs to write the storage key; this header already knows
-  how to reflect it.
+  assets/header.js corrects them on load from the same storage adapter
+  assets/wishlist.js and assets/compare.js write to.
 {%- endcomment -%}
 {%- liquid
   assign is_transparent = false
@@ -182,16 +180,6 @@
       "label": "Enable mega menu",
       "default": true,
       "info": "Menu items with sub-menus that themselves have children get a full-width panel. Turned off, every sub-menu becomes a simple dropdown."
-    },
-    {
-      "type": "select",
-      "id": "mobile_menu_style",
-      "label": "Mobile menu style",
-      "options": [
-        { "value": "drawer", "label": "Side drawer" },
-        { "value": "fullscreen", "label": "Full screen" }
-      ],
-      "default": "drawer"
     }
   ],
   "blocks": [

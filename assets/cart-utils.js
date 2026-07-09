@@ -51,7 +51,7 @@ export async function postCart(endpoint, body, sectionIds = [], signal) {
  * @param {string} sectionId
  * @param {string} selector
  */
-export function extractFromSection(sections, sectionId, selector) {
+function extractFromSection(sections, sectionId, selector) {
   const html = sections[sectionId];
   if (!html) return null;
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -67,7 +67,7 @@ export function extractFromSection(sections, sectionId, selector) {
  *
  * @param {string} message
  */
-export function announce(message) {
+function announce(message) {
   const region = document.getElementById('AtelierAnnouncer');
   if (!region) return;
   region.textContent = '';

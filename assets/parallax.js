@@ -4,7 +4,7 @@
  * uses [data-parallax], matching spec's restriction rather than a general-
  * purpose scroll-effects library.
  */
-import { prefersReducedMotion, performanceModeEnabled } from './motion.js';
+import { prefersReducedMotion, performanceModeEnabled, rafThrottle } from './motion.js';
 
 const RANGE_PX = 40;
 const DESKTOP_QUERY = '(min-width: 990px)';
@@ -16,8 +16,6 @@ export function initParallax(root = document) {
   const targets = Array.from(root.querySelectorAll('[data-parallax]'));
   if (!targets.length) return;
 
-  let ticking = false;
-
   function update() {
     targets.forEach((el) => {
       const rect = el.getBoundingClientRect();
@@ -26,18 +24,9 @@ export function initParallax(root = document) {
       const offset = (clamped - 0.5) * RANGE_PX * 2;
       el.style.transform = `translateY(${offset.toFixed(1)}px)`;
     });
-    ticking = false;
   }
 
-  window.addEventListener(
-    'scroll',
-    () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(update);
-    },
-    { passive: true }
-  );
+  window.addEventListener('scroll', rafThrottle(update), { passive: true });
 
   update();
 }

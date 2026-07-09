@@ -9,6 +9,7 @@
  */
 import { initNavMenus } from './mega-menu.js';
 import { createLocalStorageAdapter } from './theme-storage.js';
+import { rafThrottle } from './motion.js';
 
 const SCROLL_HIDE_THRESHOLD = 150;
 const SHRINK_THRESHOLD = 8;
@@ -17,25 +18,15 @@ class SiteHeader extends HTMLElement {
   connectedCallback() {
     this.stickyMode = this.dataset.sticky || 'always';
     this.lastScrollY = window.scrollY;
-    this.ticking = false;
 
     if (this.stickyMode !== 'none') {
-      window.addEventListener('scroll', () => this.requestTick(), { passive: true });
+      window.addEventListener('scroll', rafThrottle(() => this.updateScrollState()), { passive: true });
       this.updateScrollState();
     }
 
     initNavMenus(this);
     this.initActionCounts();
     this.initColorModeToggle();
-  }
-
-  requestTick() {
-    if (this.ticking) return;
-    this.ticking = true;
-    window.requestAnimationFrame(() => {
-      this.updateScrollState();
-      this.ticking = false;
-    });
   }
 
   updateScrollState() {
@@ -51,12 +42,11 @@ class SiteHeader extends HTMLElement {
   }
 
   /**
-   * Wishlist/compare counts sync from the storage adapter now (and stay in
-   * sync via subscribe(), including cross-tab) even though nothing writes to
-   * those keys yet. Cart count listens for a `cart:updated` event that no
-   * milestone dispatches yet either — this is the AJAX-ready hook; a future
-   * add-to-cart milestone only needs to dispatch that event, no header
-   * changes required then.
+   * Wishlist/compare counts sync from the storage adapter (assets/wishlist.js,
+   * assets/compare.js write to these same keys) and stay in sync via
+   * subscribe(), including cross-tab. Cart count listens for the
+   * `cart:updated` event that every add-to-cart path (quick-add, buy box,
+   * complete-the-look, cart drawer/page) dispatches on change.
    */
   initActionCounts() {
     this.syncCount('WishlistAction', createLocalStorageAdapter('atelier:wishlist', []));

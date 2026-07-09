@@ -9,12 +9,16 @@
  * checkout. Capturing the form's submit event would risk swallowing those;
  * only ever intercepting this one button's click leaves them untouched.
  *
- * Cart drawer is out of scope for this milestone (explicitly excluded), so
- * "cart drawer slides open" isn't wired yet — this dispatches the same
- * `cart:updated` event the header's cart count already listens for (built in
- * Milestone 3) and stops at the button's own "Added ✓" feedback. Whichever
- * milestone builds the drawer only needs to add one more `cart:updated`
- * listener; nothing here changes.
+ * Dispatches `cart:updated`, which assets/header.js has listened for since
+ * Milestone 3 (cart count) and assets/cart-drawer.js has listened for since
+ * Milestone 8 (refreshes and opens the drawer itself if enabled) — this
+ * file doesn't need to know the drawer exists, just fire the event.
+ *
+ * Deliberately doesn't also fire the global toast (Milestone 11): spec ties
+ * the toast specifically to quick-add's own feedback pattern (assets/
+ * quick-add.js), while the PDP's own ATC spec (§7) already has two signals
+ * — the button's inline "Added ✓" morph and the drawer opening. A third,
+ * simultaneous toast on top of both would be noise, not feedback.
  */
 export function initProductForms(root = document) {
   root.querySelectorAll('.buy-box__form').forEach((form) => {

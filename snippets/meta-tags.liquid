@@ -1,0 +1,94 @@
+{%- comment -%}
+  Favicon + social sharing (Open Graph, Twitter Card) + structured data
+  (JSON-LD) — required for Theme Store submission and for products/pages to
+  render correctly when shared on social platforms or parsed by search
+  engines. Reuses Shopify's own `page_title` / `page_description` globals
+  (already resolved per-template) for the text; the share image is resolved
+  explicitly per template below — Shopify has no single unified "page_image"
+  global the way it does for title/description, so guessing at one isn't
+  safe.
+{%- endcomment -%}
+{%- liquid
+  case template.name
+    when 'product'
+      assign social_image = product.featured_image
+    when 'collection'
+      assign social_image = collection.image
+    when 'article'
+      assign social_image = article.image
+    when 'blog'
+      assign social_image = blog.image
+    else
+      assign social_image = blank
+  endcase
+  assign social_image = social_image | default: settings.social_image
+-%}
+{%- if settings.favicon -%}
+  <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+{%- endif -%}
+
+<meta property="og:site_name" content="{{ shop.name }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:title" content="{{ page_title | escape }}">
+{%- if page_description -%}
+  <meta property="og:description" content="{{ page_description | escape }}">
+{%- endif -%}
+{%- if template contains 'product' -%}
+  <meta property="og:type" content="product">
+{%- else -%}
+  <meta property="og:type" content="website">
+{%- endif -%}
+{%- if social_image -%}
+  <meta property="og:image" content="https:{{ social_image | image_url: width: 1200 }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="{{ 1200 | divided_by: social_image.aspect_ratio | round }}">
+{%- endif -%}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ page_title | escape }}">
+{%- if page_description -%}
+  <meta name="twitter:description" content="{{ page_description | escape }}">
+{%- endif -%}
+{%- if social_image -%}
+  <meta name="twitter:image" content="https:{{ social_image | image_url: width: 1200 }}">
+{%- endif -%}
+
+{%- if settings.enable_structured_data -%}
+  {%- if template contains 'product' -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": {{ product.title | json }},
+        "description": {{ product.description | strip_html | json }},
+        "sku": {{ product.selected_or_first_available_variant.sku | json }},
+        {%- if product.featured_image %}
+        "image": [{{ product.featured_image | image_url: width: 1200 | prepend: "https:" | json }}],
+        {%- endif %}
+        {%- if product.vendor != blank %}
+        "brand": {
+          "@type": "Brand",
+          "name": {{ product.vendor | json }}
+        },
+        {%- endif %}
+        "offers": {
+          "@type": "Offer",
+          "url": {{ canonical_url | json }},
+          "priceCurrency": {{ cart.currency.iso_code | json }},
+          "price": {{ product.selected_or_first_available_variant.price | divided_by: 100.0 | json }},
+          "availability": "https://schema.org/{% if product.selected_or_first_available_variant.available %}InStock{% else %}OutOfStock{% endif %}"
+        }
+      }
+    </script>
+  {%- elsif template contains 'collection' and collection.description != blank -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": {{ collection.title | json }},
+        "description": {{ collection.description | strip_html | json }},
+        "url": {{ canonical_url | json }}
+      }
+    </script>
+  {%- endif -%}
+{%- endif -%}

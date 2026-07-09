@@ -1,0 +1,39 @@
+{%- comment -%}
+  Social icon row — reads the global "Store info & social" settings
+  (Milestone 11) rather than per-section settings, so a merchant enters each
+  URL once and it's correct everywhere it appears (contact page, footer).
+  Consolidated here from what was originally a contact-page-only,
+  section-scoped duplicate (Milestone 10) once the footer needed the exact
+  same row.
+
+  Accepts: icon_size (optional, default 20).
+{%- endcomment -%}
+{%- liquid
+  assign icon_size = icon_size | default: 20
+  assign has_social = false
+  if settings.social_instagram != blank or settings.social_facebook != blank or settings.social_x != blank or settings.social_youtube != blank or settings.social_tiktok != blank or settings.social_pinterest != blank
+    assign has_social = true
+  endif
+-%}
+{%- if has_social -%}
+  <div class="social-links">
+    {%- if settings.social_instagram != blank -%}
+      <a href="{{ settings.social_instagram }}" class="btn-icon" aria-label="Instagram">{% render 'icon', name: 'instagram', size: icon_size %}</a>
+    {%- endif -%}
+    {%- if settings.social_facebook != blank -%}
+      <a href="{{ settings.social_facebook }}" class="btn-icon" aria-label="Facebook">{% render 'icon', name: 'facebook', size: icon_size %}</a>
+    {%- endif -%}
+    {%- if settings.social_x != blank -%}
+      <a href="{{ settings.social_x }}" class="btn-icon" aria-label="X">{% render 'icon', name: 'x-social', size: icon_size %}</a>
+    {%- endif -%}
+    {%- if settings.social_youtube != blank -%}
+      <a href="{{ settings.social_youtube }}" class="btn-icon" aria-label="YouTube">{% render 'icon', name: 'youtube', size: icon_size %}</a>
+    {%- endif -%}
+    {%- if settings.social_tiktok != blank -%}
+      <a href="{{ settings.social_tiktok }}" class="btn-icon" aria-label="TikTok">{% render 'icon', name: 'tiktok', size: icon_size %}</a>
+    {%- endif -%}
+    {%- if settings.social_pinterest != blank -%}
+      <a href="{{ settings.social_pinterest }}" class="btn-icon" aria-label="Pinterest">{% render 'icon', name: 'pinterest', size: icon_size %}</a>
+    {%- endif -%}
+  </div>
+{%- endif -%}

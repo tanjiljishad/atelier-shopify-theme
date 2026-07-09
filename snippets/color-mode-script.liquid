@@ -1,0 +1,27 @@
+{%- comment -%}
+  Blocking, inline color-mode resolver — must run first in <head>, before
+  any paint, so a "user" (visitor-toggleable) dark-mode preference doesn't
+  flash light-then-dark. Only relevant when settings.color_scheme_mode is
+  "user"; the other three modes are already fully resolved server-side by
+  each layout's own color_mode_attr computation. Shared by every layout
+  (theme.liquid, password.liquid, gift_card.liquid) rather than copy-pasted,
+  so a fix to this logic never has to be applied more than once.
+{%- endcomment -%}
+{%- if settings.color_scheme_mode == 'user' -%}
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('atelier:color-mode');
+        var mode = stored
+          ? JSON.parse(stored)
+          : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+        document.documentElement.setAttribute('data-color-mode', mode);
+      } catch (error) {
+        /* localStorage unavailable (private mode, blocked cookies, etc.);
+           keep the server-rendered "light" default. */
+      }
+    })();
+  </script>
+{%- endif -%}

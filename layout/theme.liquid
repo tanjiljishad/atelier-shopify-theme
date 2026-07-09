@@ -17,28 +17,7 @@
 -%}
 <html class="{{ html_classes }}" lang="{{ request.locale.iso_code }}" data-color-mode="{{ color_mode_attr }}">
   <head>
-    {%- if settings.color_scheme_mode == 'user' -%}
-      <script>
-        // Blocking, inline, and first in <head> on purpose: resolves the visitor's
-        // remembered (or system) preference before first paint so there is no
-        // light-to-dark flash. Only relevant when color_scheme_mode is "user" —
-        // the other three modes are already fully resolved server-side above.
-        (function () {
-          try {
-            var stored = localStorage.getItem('atelier:color-mode');
-            var mode = stored
-              ? JSON.parse(stored)
-              : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-                ? 'dark'
-                : 'light';
-            document.documentElement.setAttribute('data-color-mode', mode);
-          } catch (error) {
-            /* localStorage unavailable (private mode, blocked cookies, etc.);
-               keep the server-rendered "light" default. */
-          }
-        })();
-      </script>
-    {%- endif -%}
+    {%- render 'color-mode-script' -%}
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -55,33 +34,11 @@
       <meta name="description" content="{{ page_description | escape }}">
     {%- endif -%}
 
+    {%- render 'meta-tags' -%}
+
     {{ content_for_header }}
 
-    {%- render 'theme-fonts' -%}
-    {%- render 'theme-tokens' -%}
-
-    {{ 'theme.css' | asset_url | stylesheet_tag }}
-
-    {%- if settings.custom_css != blank -%}
-      <style>
-        {{ settings.custom_css }}
-      </style>
-    {%- endif -%}
-
-    <script>
-      window.Atelier = window.Atelier || {};
-      window.Atelier.settings = {
-        animationsEnabled: {{ settings.animations_enabled | json }},
-        performanceMode: {{ settings.performance_mode | json }},
-        colorSchemeMode: {{ settings.color_scheme_mode | json }},
-        moneyFormat: {{ shop.money_format | json }}
-      };
-    </script>
-    <script src="{{ 'theme.js' | asset_url }}" type="module"></script>
-
-    {%- if settings.custom_head_code != blank -%}
-      {{ settings.custom_head_code }}
-    {%- endif -%}
+    {%- render 'theme-assets' -%}
   </head>
 
   <body>
@@ -90,6 +47,8 @@
     <a class="skip-link" href="#MainContent">{{ 'accessibility.skip_to_text' | t }}</a>
 
     <div id="AtelierAnnouncer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+    <div id="AtelierToast" class="toast-container"></div>
+    <div id="AtelierLoadingBar" class="loading-bar" aria-hidden="true" data-loading-bar></div>
 
     {% sections 'header-group' %}
 
@@ -98,5 +57,15 @@
     </main>
 
     {% sections 'footer-group' %}
+
+    {%- if settings.enable_age_verification -%}
+      {% render 'age-verification' %}
+    {%- endif -%}
+    {%- if settings.enable_cookie_banner -%}
+      {% render 'cookie-banner' %}
+    {%- endif -%}
+    {%- if settings.enable_popup -%}
+      {% render 'email-popup' %}
+    {%- endif -%}
   </body>
 </html>

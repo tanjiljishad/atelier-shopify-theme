@@ -1,0 +1,29 @@
+{%- comment -%}
+  Set a password after accepting an account invitation (the emailed
+  "activate your account" link). Same shape as reset-password — a real
+  password_confirmation check server-side.
+{%- endcomment -%}
+<div class="container customer-form-page">
+  <div class="customer-form-page__header">
+    <h1 class="customer-form-page__title">{{ 'customer.activate_title' | t }}</h1>
+    <p class="text-small">{{ 'customer.activate_intro' | t }}</p>
+  </div>
+
+  {%- form 'activate_customer_password', class: 'customer-form' -%}
+    {%- if form.errors -%}
+      <p class="field__message field__message--error" role="alert">{{ form.errors.messages.first }}</p>
+    {%- endif -%}
+
+    {% render 'password-field', id: 'ActivatePassword', name: 'customer[password]', label: 'customer.new_password' | t, autocomplete: 'new-password', required: true %}
+    {% render 'password-field', id: 'ActivatePasswordConfirm', name: 'customer[password_confirmation]', label: 'customer.confirm_password' | t, autocomplete: 'new-password', required: true %}
+
+    <button type="submit" class="btn btn--primary btn--full">{{ 'customer.activate_submit' | t }}</button>
+  {%- endform -%}
+</div>
+
+{% schema %}
+{
+  "name": "Activate account",
+  "settings": []
+}
+{% endschema %}

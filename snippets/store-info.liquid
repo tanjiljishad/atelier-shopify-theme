@@ -1,0 +1,30 @@
+{%- comment -%}
+  Store contact info rows (address/phone/email/hours) — reads the global
+  "Store info & social" settings, same consolidation as social-links.liquid.
+  Shared by the contact page and the footer's contact block.
+{%- endcomment -%}
+{%- if settings.store_address != blank or settings.store_phone != blank or settings.store_email != blank or settings.store_hours != blank -%}
+  <div class="store-info">
+    {%- if settings.store_address != blank -%}
+      <div class="store-info__row">
+        {% render 'icon', name: 'map-pin', size: 18 %}
+        <span class="text-small">{{ settings.store_address }}</span>
+      </div>
+    {%- endif -%}
+    {%- if settings.store_phone != blank -%}
+      <div class="store-info__row">
+        {% render 'icon', name: 'phone', size: 18 %}
+        <a href="tel:{{ settings.store_phone }}" class="text-small">{{ settings.store_phone }}</a>
+      </div>
+    {%- endif -%}
+    {%- if settings.store_email != blank -%}
+      <div class="store-info__row">
+        {% render 'icon', name: 'mail', size: 18 %}
+        <a href="mailto:{{ settings.store_email }}" class="text-small">{{ settings.store_email }}</a>
+      </div>
+    {%- endif -%}
+    {%- if settings.store_hours != blank -%}
+      <p class="text-small store-info__hours">{{ settings.store_hours }}</p>
+    {%- endif -%}
+  </div>
+{%- endif -%}

@@ -1,0 +1,17 @@
+{%- comment -%}
+  Accepted payment icons — grayscale row via Shopify's own
+  `payment_type_svg_tag` filter (spec: "payment icons in grayscale"/
+  "outline style" — no icon set to maintain, always matches whatever the
+  merchant actually has enabled in Settings → Payments). Extracted from
+  the cart page (Milestone 8) once the footer (Milestone 11) needed the
+  exact same row.
+
+  Accepts: class (optional): extra class on each icon, for size overrides.
+{%- endcomment -%}
+{%- if shop.enabled_payment_types.size > 0 -%}
+  <div class="payment-icons">
+    {%- for type in shop.enabled_payment_types -%}
+      {{ type | payment_type_svg_tag: class: 'payment-icons__icon ' | append: class }}
+    {%- endfor -%}
+  </div>
+{%- endif -%}

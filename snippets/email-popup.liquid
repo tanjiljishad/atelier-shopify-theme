@@ -1,0 +1,73 @@
+{%- comment -%}
+  Email-capture popup (Milestone 11 §3): triggers on whichever comes first —
+  a delay (settings.popup_delay_seconds) or 40% scroll depth — then is
+  suppressed for settings.popup_frequency_days. Reuses the exact native
+  `customer` form + contact[tags] convention as sections/newsletter.liquid
+  and the footer's newsletter block rather than a third parallel signup
+  implementation; the real (non-AJAX) submit is the same deliberate
+  correctness-over-flash trade documented there.
+
+  The `{% form %}` tag's `form` object only exists inside the tag, but the
+  outer wrapper's `data-force-open` attribute (read by assets/email-popup.js
+  to bypass the delay/scroll timers and reopen showing the just-submitted
+  result) has to be known before that wrapper's opening tag is emitted.
+  Capturing the form's rendered output first — assigns inside a `{% capture
+  %}` still write page-scoped variables — lets the flag be resolved before
+  the wrapper prints.
+{%- endcomment -%}
+{%- assign email_popup_force_open = false -%}
+{%- capture email_popup_form -%}
+  {%- form 'customer', id: 'EmailPopupForm', class: 'email-popup__form' -%}
+    <input type="hidden" name="contact[tags]" value="newsletter,popup">
+    {%- if form.posted_successfully? or form.errors -%}
+      {%- assign email_popup_force_open = true -%}
+    {%- endif -%}
+    {%- if form.posted_successfully? -%}
+      <div class="email-popup__success">
+        {% render 'icon', name: 'check', size: 24 %}
+        <p>{{ 'general.email_popup.success' | t }}</p>
+      </div>
+    {%- else -%}
+      <h2 class="email-popup__heading">{{ 'general.email_popup.heading' | t }}</h2>
+      <p class="email-popup__message text-small">{{ 'general.email_popup.message' | t }}</p>
+      <div class="email-popup__field-row">
+        <label class="visually-hidden" for="EmailPopupForm-email">{{ 'sections.newsletter.email_label' | t }}</label>
+        <input
+          type="email"
+          id="EmailPopupForm-email"
+          name="contact[email]"
+          class="email-popup__input"
+          placeholder="{{ 'sections.newsletter.email_placeholder' | t }}"
+          autocomplete="email"
+          required
+          {% if form.errors %}aria-invalid="true" aria-describedby="EmailPopupForm-error"{% endif %}
+        >
+        <button type="submit" class="btn btn--primary email-popup__submit">
+          <span class="btn__label">{{ 'sections.newsletter.submit' | t }}</span>
+        </button>
+      </div>
+      {%- if form.errors -%}
+        <p class="field__message field__message--error" id="EmailPopupForm-error">
+          {% render 'icon', name: 'circle-alert', size: 16 %}{{ form.errors.translated_default_message }}
+        </p>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endform -%}
+{%- endcapture -%}
+
+<div
+  class="email-popup"
+  data-email-popup
+  hidden
+  data-delay="{{ settings.popup_delay_seconds | default: 20 }}"
+  data-frequency="{{ settings.popup_frequency_days | default: 14 }}"
+  data-force-open="{{ email_popup_force_open }}"
+>
+  <div class="email-popup__scrim" data-email-popup-dismiss></div>
+  <div class="email-popup__panel" role="dialog" aria-modal="true" aria-label="{{ 'general.email_popup.heading' | t }}">
+    <button type="button" class="email-popup__close" data-email-popup-dismiss aria-label="{{ 'general.close' | t }}">
+      {% render 'icon', name: 'x', size: 20 %}
+    </button>
+    {{ email_popup_form }}
+  </div>
+</div>

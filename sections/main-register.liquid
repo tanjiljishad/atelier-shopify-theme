@@ -1,0 +1,40 @@
+{%- comment -%}
+  Customer registration. Same field/password-field primitives as login —
+  first/last name, email, password, no confirm-password field since
+  Shopify's create_customer form has no matching-confirmation validation to
+  check it against server-side (a client-only "do these match" check would
+  be theater, not real validation).
+{%- endcomment -%}
+<div class="container customer-form-page">
+  <div class="customer-form-page__header">
+    <h1 class="customer-form-page__title">{{ 'customer.register_title' | t }}</h1>
+  </div>
+
+  {%- form 'create_customer', class: 'customer-form' -%}
+    {%- if form.errors -%}
+      <p class="field__message field__message--error" role="alert">{{ form.errors.messages.first }}</p>
+    {%- endif -%}
+
+    <div class="customer-form__row">
+      {% render 'field', id: 'RegisterFirstName', name: 'customer[first_name]', label: 'customer.first_name' | t, autocomplete: 'given-name' %}
+      {% render 'field', id: 'RegisterLastName', name: 'customer[last_name]', label: 'customer.last_name' | t, autocomplete: 'family-name' %}
+    </div>
+
+    {% render 'field', id: 'RegisterEmail', name: 'customer[email]', type: 'email', label: 'customer.email' | t, autocomplete: 'email', required: true %}
+    {% render 'password-field', id: 'RegisterPassword', name: 'customer[password]', label: 'customer.password' | t, autocomplete: 'new-password', required: true %}
+
+    <button type="submit" class="btn btn--primary btn--full">{{ 'customer.create_account' | t }}</button>
+  {%- endform -%}
+
+  <p class="customer-form-page__footer">
+    {{ 'customer.have_account' | t }}
+    <a href="{{ routes.account_login_url }}">{{ 'customer.sign_in' | t }}</a>
+  </p>
+</div>
+
+{% schema %}
+{
+  "name": "Register",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,71 @@
+{%- comment -%}
+  Account dashboard + order history — Shopify's native customer account
+  architecture combines these into one template (customers/account.liquid);
+  there's no separate "order history" template distinct from it. Building a
+  second, parallel "dashboard summary" page that just links to this one
+  would be a maintenance burden for zero real benefit, so this single
+  section serves both jobs from the milestone brief at once: welcome +
+  address-book summary (dashboard) above a full paginated order list (order
+  history) below. Native Shopify architecture chosen deliberately over
+  building two pages the platform doesn't actually separate.
+
+  Order rows reuse the same visual language as cart-line-item.liquid
+  (Milestone 8) — image/title/price/status — without reusing that snippet
+  directly, since a past order's line items are read-only (no quantity
+  stepper, no remove) and need a fulfillment/financial status badge
+  cart-line-item has no concept of.
+{%- endcomment -%}
+<div class="container customer-account">
+  {% render 'customer-nav', current: 'account' %}
+
+  <div class="customer-account__header">
+    <h1 class="customer-account__title">{{ 'customer.welcome' | t: name: customer.first_name }}</h1>
+  </div>
+
+  {%- if customer.default_address -%}
+    <div class="customer-account__address-summary">
+      <h2 class="customer-account__subheading">{{ 'customer.default_address_title' | t }}</h2>
+      <div class="text-small">{{ customer.default_address | format_address }}</div>
+      <a href="{{ routes.account_addresses_url }}" class="link text-small">{{ 'customer.manage_addresses' | t }}</a>
+    </div>
+  {%- endif -%}
+
+  <h2 class="customer-account__subheading">{{ 'customer.orders_title' | t }}</h2>
+
+  {%- paginate customer.orders by 10 -%}
+    {%- if customer.orders.size > 0 -%}
+      <div class="customer-orders">
+        {%- for order in customer.orders -%}
+          <a href="{{ order.customer_url }}" class="customer-order">
+            <div class="customer-order__media aspect-ratio" style="aspect-ratio: 1/1;">
+              {% render 'responsive-image', image: order.line_items.first.image, sizes: '64px', wrap: false %}
+            </div>
+            <div class="customer-order__info">
+              <span class="customer-order__name">{{ order.name }}</span>
+              <span class="text-small customer-order__date">{{ order.created_at | date: format: 'month_day_year' }}</span>
+            </div>
+            {% render 'badge', text: order.financial_status_label, tone: 'info' %}
+            {% render 'badge', text: order.fulfillment_status_label, tone: 'accent' %}
+            <span class="customer-order__total">{{ order.total_price | money }}</span>
+          </a>
+        {%- endfor -%}
+      </div>
+
+      {% render 'pagination', paginate: paginate, style: 'numbered' %}
+    {%- else -%}
+      <div class="collection-empty-state">
+        {% render 'icon', name: 'shopping-bag', size: 48 %}
+        <h2 class="collection-empty-state__title">{{ 'customer.no_orders_title' | t }}</h2>
+        <p class="text-small">{{ 'customer.no_orders_message' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn--primary">{{ 'cart.continue_shopping' | t }}</a>
+      </div>
+    {%- endif -%}
+  {%- endpaginate -%}
+</div>
+
+{% schema %}
+{
+  "name": "Account",
+  "settings": []
+}
+{% endschema %}

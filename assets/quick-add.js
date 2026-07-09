@@ -5,13 +5,14 @@
  * regardless of theme, so this doesn't need to wait on a cart *drawer* UI to
  * be genuinely functional. On success it dispatches `cart:updated`, which
  * assets/header.js has listened for since Milestone 3, so the header cart
- * count updates for real with zero changes on that side.
+ * count updates for real with zero changes on that side, and (Milestone 8+)
+ * assets/cart-drawer.js opens the drawer itself if enabled.
  *
- * What this deliberately does NOT do: open a cart drawer/panel afterward
- * (none exists yet — a later milestone), or handle multi-variant selection
- * (snippets/product-card.liquid renders a "Choose options" link to the PDP
- * for those instead of this element).
+ * Also fires the global toast (spec §5.6: "Added — View cart") — a page-
+ * level confirmation distinct from this button's own inline "Added ✓" label
+ * swap below, which only confirms *this specific button* worked.
  */
+import { showToast } from './toast.js';
 class QuickAddButton extends HTMLElement {
   connectedCallback() {
     this.button = this.querySelector('button');
@@ -41,6 +42,13 @@ class QuickAddButton extends HTMLElement {
       const cartResponse = await fetch(`${window.Shopify && window.Shopify.routes ? window.Shopify.routes.root : '/'}cart.js`);
       const cart = await cartResponse.json();
       document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true, detail: { itemCount: cart.item_count } }));
+
+      const i18n = window.Atelier.settings.i18n;
+      showToast({
+        message: i18n.cartToastAdded,
+        actionText: i18n.cartToastViewCart,
+        actionUrl: window.Atelier.settings.cartUrl,
+      });
 
       this.showFeedback(this.dataset.addedLabel || 'Added');
     } catch (error) {

@@ -48,6 +48,16 @@
              arrows reuse icon-chevron-down + the existing .icon--rotate-90 /
              .icon--rotate-neg90 utilities (same convention as mobile-nav's
              back/forward chevrons) rather than adding two more symbols.
+
+  Added in Milestone 10 (blog, customer accounts, contact):
+    icon-mail, icon-phone, icon-map-pin — contact page store-info rows
+    icon-eye-off — account login/register password visibility toggle
+             (paired with the existing icon-eye for the "shown" state)
+    icon-message-circle — article comment count/section heading
+    icon-instagram, icon-facebook, icon-x-social, icon-youtube, icon-tiktok,
+    icon-pinterest — contact page social links. Article prev/next nav and
+    the blog tag-filter "clear" affordance reuse icon-chevron-down (rotated)
+    and icon-x exactly as already established, no new symbols needed.
 {%- endcomment -%}
 <svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden;">
   <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -173,5 +183,55 @@
 
   <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
     <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </symbol>
+
+  <symbol id="icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </symbol>
+
+  <symbol id="icon-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465a2 2 0 0 1 2.3-.606l3.51 1.404a1 1 0 0 1 .59 1.169l-.744 2.978a1 1 0 0 1-.958.75A19.66 19.66 0 0 1 3 8.72a1 1 0 0 1 .75-.958l2.979-.744a1 1 0 0 1 1.169.59l1.404 3.51a2 2 0 0 1-.605 2.3l-.465.354a1 1 0 0 0-.302 1.214 12.035 12.035 0 0 0 5.902 5.902" />
+  </symbol>
+
+  <symbol id="icon-map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+    <circle cx="12" cy="10" r="3" />
+  </symbol>
+
+  <symbol id="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+    <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+    <path d="m2 2 20 20" />
+  </symbol>
+
+  <symbol id="icon-message-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
+  </symbol>
+
+  <symbol id="icon-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" /><path d="M16 11.37a4 4 0 1 1-7.914 1.174 4 4 0 0 1 7.914-1.174z" />
+    <path d="M17.5 6.5h.01" />
+  </symbol>
+
+  <symbol id="icon-facebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </symbol>
+
+  <symbol id="icon-x-social" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 4l16 16M20 4L4 20" />
+  </symbol>
+
+  <symbol id="icon-youtube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+    <path d="m10 15 5-3-5-3z" />
+  </symbol>
+
+  <symbol id="icon-tiktok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </symbol>
+
+  <symbol id="icon-pinterest" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10" /><path d="M9.5 20 12 8" /><path d="M8.5 12.5a3.5 3.5 0 1 0 7 0c0-2-1.5-4-3.75-4A4.25 4.25 0 0 0 7.5 12.75c0 1.25.5 2 1 2.25" />
   </symbol>
 </svg>

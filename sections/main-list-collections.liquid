@@ -1,0 +1,38 @@
+{%- comment -%}
+  All collections (Theme Store required template). Reuses
+  snippets/collection-card.liquid exactly as built in Milestone 4 — same
+  card, same two presentations, no new component.
+{%- endcomment -%}
+<div class="container container--wide">
+  <h1 class="list-collections__title">{{ 'list_collections.title' | t }}</h1>
+
+  {%- if collections.size > 0 -%}
+    <div class="grid grid-cols-4" data-scroll-reveal>
+      {%- for collection in collections -%}
+        <div data-scroll-reveal-child>
+          {% render 'collection-card', collection: collection, mode: section.settings.card_mode, priority: forloop.index0 < 4 %}
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    {% render 'collection-empty-state' %}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "All collections",
+  "settings": [
+    {
+      "type": "select",
+      "id": "card_mode",
+      "label": "Card style",
+      "options": [
+        { "value": "standard", "label": "Standard" },
+        { "value": "overlay", "label": "Overlay" }
+      ],
+      "default": "overlay"
+    }
+  ]
+}
+{% endschema %}

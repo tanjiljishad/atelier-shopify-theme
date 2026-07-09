@@ -1,0 +1,52 @@
+{%- comment -%}
+  Blog card (spec §5.5: "3:2 image, Caption date/tag, H5 title, 2-line
+  excerpt, 'Read →' ghost. Featured variant spans 2 columns."). Same
+  mode-based pattern as collection-card.liquid rather than a second card
+  architecture — one card, two presentations, reusing responsive-image,
+  reading-time, and the .btn--ghost/.caption primitives everywhere else in
+  the theme already relies on.
+
+  Accepts:
+  - article (required)
+  - mode: 'standard' (default) | 'featured' (larger excerpt type scale;
+    meant to span 2 grid columns — the grid itself decides the span via a
+    wrapper class, this snippet only changes scale)
+  - priority: passed through to the image
+{%- endcomment -%}
+{%- liquid
+  assign card_mode = mode | default: 'standard'
+  assign excerpt = article.excerpt
+  if excerpt == blank
+    assign excerpt = article.content | strip_html | truncatewords: 24
+  endif
+-%}
+<a href="{{ article.url }}" class="blog-card blog-card--{{ card_mode }}">
+  <div class="blog-card__media aspect-ratio" style="aspect-ratio: 3/2;">
+    {% render 'responsive-image', image: article.image, sizes: '(min-width: 990px) 33vw, 100vw', wrap: false, class: 'blog-card__image', priority: priority %}
+  </div>
+
+  <div class="blog-card__info">
+    <p class="caption blog-card__meta">
+      {%- if settings.blog_show_author -%}
+        {{ article.author }}<span aria-hidden="true"> · </span>
+      {%- endif -%}
+      <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">{{ article.published_at | date: format: 'month_day_year' }}</time>
+      {%- if article.tags.size > 0 -%}
+        <span aria-hidden="true"> · </span>{{ article.tags.first }}
+      {%- endif -%}
+      {%- if settings.blog_show_reading_time -%}
+        <span aria-hidden="true"> · </span>{% render 'reading-time', content: article.content %}
+      {%- endif -%}
+    </p>
+
+    <h3 class="blog-card__title">{{ article.title }}</h3>
+
+    {%- if card_mode == 'featured' -%}
+      <p class="blog-card__excerpt text-body-large">{{ excerpt }}</p>
+    {%- else -%}
+      <p class="blog-card__excerpt text-small">{{ excerpt }}</p>
+    {%- endif -%}
+
+    <span class="btn btn--ghost blog-card__cta">{{ 'blog.read_more' | t }}</span>
+  </div>
+</a>

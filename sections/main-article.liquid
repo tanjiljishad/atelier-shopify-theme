@@ -1,0 +1,191 @@
+{%- comment -%}
+  Article page. No dedicated spec section exists for this template (the PDF
+  only describes the blog *card*, §5.5) — extends the established visual
+  language directly: Marcellus display heading (matching every other H1 in
+  the theme), .prose for the body (Milestone 1, now carrying table/img/
+  iframe/blockquote/code coverage added this milestone), reading-time and
+  blog-card reused verbatim for meta and related articles, share-button
+  generalized this milestone specifically so this page doesn't duplicate it.
+
+  Comments use Shopify's native `new_comment` form — no custom comment
+  system. Previous/next navigation and related articles are both simple,
+  real links; no AJAX needed for a single article-to-article hop.
+{%- endcomment -%}
+<article>
+  {%- if article.image and section.settings.show_hero_image -%}
+    <div class="article-hero aspect-ratio" style="aspect-ratio: {{ section.settings.hero_ratio }};">
+      {% render 'responsive-image', image: article.image, sizes: '100vw', wrap: false, priority: true, class: 'article-hero__image' %}
+    </div>
+  {%- endif -%}
+
+  <div class="container article-header">
+    {% render 'breadcrumb', blog: blog, article: article %}
+
+    {%- if article.tags.size > 0 -%}
+      <p class="caption article-header__tag">{{ article.tags.first }}</p>
+    {%- endif -%}
+
+    <h1 class="article-header__title">{{ article.title }}</h1>
+
+    <div class="article-header__meta">
+      {%- if article.author != blank -%}
+        <span class="article-header__author">{{ article.author }}</span>
+      {%- endif -%}
+      <time class="text-small" datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+        {{ article.published_at | date: format: 'month_day_year' }}
+      </time>
+      <span class="text-small">{% render 'reading-time', content: article.content %}</span>
+    </div>
+  </div>
+
+  <div class="container article-body">
+    <div class="prose">
+      {{ article.content }}
+    </div>
+
+    <div class="article-footer">
+      {%- if article.tags.size > 0 -%}
+        <div class="article-footer__tags">
+          {%- for tag in article.tags -%}
+            <a href="{{ blog.url }}/tagged/{{ tag | handle }}" class="article-footer__tag">{{ tag }}</a>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {% render 'share-button', title: article.title, url: article.url, class: 'article-footer__share' %}
+    </div>
+  </div>
+
+  {%- if blog.previous_article or blog.next_article -%}
+    <nav class="container article-nav" aria-label="{{ 'blog.article_navigation' | t }}">
+      {%- if blog.previous_article -%}
+        <a href="{{ blog.previous_article.url }}" class="article-nav__link article-nav__link--prev">
+          {% render 'icon', name: 'chevron-down', size: 16, class: 'icon--rotate-neg90' %}
+          <span>
+            <span class="caption">{{ 'blog.previous_article' | t }}</span>
+            <span class="article-nav__title">{{ blog.previous_article.title }}</span>
+          </span>
+        </a>
+      {%- endif -%}
+      {%- if blog.next_article -%}
+        <a href="{{ blog.next_article.url }}" class="article-nav__link article-nav__link--next">
+          <span>
+            <span class="caption">{{ 'blog.next_article' | t }}</span>
+            <span class="article-nav__title">{{ blog.next_article.title }}</span>
+          </span>
+          {% render 'icon', name: 'chevron-down', size: 16, class: 'icon--rotate-90' %}
+        </a>
+      {%- endif -%}
+    </nav>
+  {%- endif -%}
+
+  {%- if section.settings.show_related and blog.articles.size > 1 -%}
+    {%- assign related_count = 0 -%}
+    <div class="container section--rhythm">
+      {% render 'section-heading', heading: 'blog.related_heading' | t, align: 'left' %}
+      <div class="grid grid-cols-3">
+        {%- for related_article in blog.articles -%}
+          {%- if related_article.id != article.id and related_count < 3 -%}
+            {% render 'blog-card', article: related_article %}
+            {%- assign related_count = related_count | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if blog.comments_enabled and section.settings.show_comments -%}
+    <div class="container article-comments section--rhythm">
+      <h2 class="article-comments__heading">
+        {% render 'icon', name: 'message-circle', size: 20 %}
+        {{ 'blog.comments_heading' | t: count: article.comments_count }}
+      </h2>
+
+      {%- if article.comments_count > 0 -%}
+        <ul class="article-comments__list list-unstyled">
+          {%- for comment in article.comments -%}
+            <li class="article-comment">
+              <p class="article-comment__author">{{ comment.author }}</p>
+              <time class="text-small article-comment__date" datetime="{{ comment.created_at | date: '%Y-%m-%d' }}">
+                {{ comment.created_at | date: format: 'month_day_year' }}
+              </time>
+              <div class="article-comment__body">{{ comment.content }}</div>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- form 'new_comment', article, class: 'article-comment-form' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="field__message field__message--success" role="status">
+            {%- if blog.moderated? -%}
+              {{ 'blog.comment_moderated' | t }}
+            {%- else -%}
+              {{ 'blog.comment_posted' | t }}
+            {%- endif -%}
+          </p>
+        {%- endif -%}
+
+        {%- if form.errors -%}
+          <p class="field__message field__message--error" role="alert">{{ form.errors.messages.first }}</p>
+        {%- endif -%}
+
+        <div class="article-comment-form__row">
+          {% render 'field', id: 'CommentAuthor', name: 'comment[author]', label: 'blog.comment_name' | t, value: form.author, required: true %}
+          {% render 'field', id: 'CommentEmail', name: 'comment[email]', type: 'email', label: 'blog.comment_email' | t, value: form.email, required: true %}
+        </div>
+        {% render 'field', id: 'CommentBody', name: 'comment[body]', type: 'textarea', label: 'blog.comment_message' | t, value: form.body, rows: 5, required: true %}
+
+        <button type="submit" class="btn btn--primary">{{ 'blog.comment_submit' | t }}</button>
+      {%- endform -%}
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.show_newsletter -%}
+    {% section 'newsletter' %}
+  {%- endif -%}
+</article>
+
+{% schema %}
+{
+  "name": "Article",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_hero_image",
+      "label": "Show featured image as hero",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "hero_ratio",
+      "label": "Hero image ratio",
+      "options": [
+        { "value": "21/9", "label": "Wide (21:9)" },
+        { "value": "16/9", "label": "Standard (16:9)" },
+        { "value": "1/1", "label": "Square (1:1)" }
+      ],
+      "default": "16/9"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_related",
+      "label": "Show related articles",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comments",
+      "label": "Show comments",
+      "default": true,
+      "info": "Also requires comments to be enabled for this blog in Shopify admin."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_newsletter",
+      "label": "Show newsletter signup",
+      "default": false
+    }
+  ]
+}
+{% endschema %}

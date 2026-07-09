@@ -1,20 +1,30 @@
 {%- comment -%}
   Share button: native Web Share API on devices that support it (share sheet
-  with the product title + URL), clipboard-copy fallback everywhere else.
+  with the given title + URL), clipboard-copy fallback everywhere else.
   Reuses .tooltip__content's exact visual treatment (theme.css) for the
   "Copied" confirmation bubble rather than duplicating that CSS, but doesn't
   render tooltip.liquid itself — a share confirmation is a transient status
   message (role="status", aria-live), not a hover description (role="tooltip"),
   different enough semantics to not force the same markup.
 
-  Accepts: product (required).
+  Generic (not product-specific) since Milestone 10 needs the exact same
+  button on article pages — one component, two callers (buy-box.liquid,
+  main-article.liquid).
+
+  Accepts:
+  - title (required), url (required)
+  - class: extra class(es) on the trigger button, default 'buy-box__action-button'
+    (the PDP's own action-row styling; the article page passes its own).
 {%- endcomment -%}
+{%- liquid
+  assign button_class = class | default: 'buy-box__action-button'
+-%}
 <div class="share-button">
-  <button type="button" class="buy-box__action-button" data-share-button data-share-title="{{ product.title | escape }}" data-share-url="{{ product.url | default: request.path }}" aria-label="{{ 'products.product.share' | t }}">
+  <button type="button" class="{{ button_class }}" data-share-button data-share-title="{{ title | escape }}" data-share-url="{{ url }}" aria-label="{{ 'general.share' | t }}">
     {% render 'icon', name: 'share-2', size: 18 %}
-    <span>{{ 'products.product.share' | t }}</span>
+    <span>{{ 'general.share' | t }}</span>
   </button>
   <span class="tooltip__content tooltip__content--top" data-share-confirmation role="status" aria-live="polite">
-    {{ 'products.product.share_copied' | t }}
+    {{ 'general.share_copied' | t }}
   </span>
 </div>

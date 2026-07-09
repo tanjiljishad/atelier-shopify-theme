@@ -1,0 +1,15 @@
+{%- comment -%}
+  Reading time estimate — Shopify has no native word-count or reading-time
+  object, so this computes one from the article's own content (~200 words/
+  minute, a commonly used average) and outputs just the text, e.g. "4 min
+  read". Used by both blog-card.liquid and main-article.liquid so the same
+  200wpm assumption lives in exactly one place.
+
+  Accepts: content (required): the article's raw content/body HTML.
+{%- endcomment -%}
+{%- liquid
+  assign word_count = content | strip_html | split: ' ' | size
+  assign minutes = word_count | plus: 199 | divided_by: 200
+  assign minutes = minutes | at_least: 1
+-%}
+{{ 'blog.reading_time' | t: minutes: minutes }}

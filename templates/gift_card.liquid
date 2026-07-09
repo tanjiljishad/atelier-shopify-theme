@@ -1,0 +1,44 @@
+{%- comment -%}
+  Gift card template (Shopify Theme Store requirement — this is a special,
+  non-JSON, non-section template; Shopify serves it under layout/
+  gift_card.liquid, a minimal print-friendly layout with no header/footer
+  chrome). Reuses the same .btn/.field-adjacent visual language as the rest
+  of the theme, just composed directly rather than through sections since
+  this page has no theme-editor customization surface.
+{%- endcomment -%}
+<div class="gift-card-page color-scheme-scheme-2">
+  <div class="gift-card-page__card">
+    <p class="caption gift-card-page__shop">{{ shop.name }}</p>
+    <h1 class="gift-card-page__heading">{{ 'gift_card.heading' | t: shop: shop.name }}</h1>
+
+    <div class="gift-card-page__value">
+      {%- if gift_card.enabled == false -%}
+        <span class="badge badge--sold-out">{{ 'gift_card.disabled' | t }}</span>
+      {%- elsif gift_card.expired -%}
+        <span class="badge badge--sold-out">{{ 'gift_card.expired' | t }}</span>
+      {%- endif -%}
+      <span class="gift-card-page__balance">{{ gift_card.formatted_balance }}</span>
+      {%- if gift_card.formatted_balance != gift_card.formatted_initial_value -%}
+        <span class="text-small gift-card-page__initial-value">{{ 'gift_card.value_label' | t }}: {{ gift_card.formatted_initial_value }}</span>
+      {%- endif -%}
+    </div>
+
+    <div class="gift-card-page__code-row">
+      <span class="gift-card-page__code" data-gift-card-code="{{ gift_card.code }}">{{ gift_card.code }}</span>
+      <button type="button" class="btn btn--outline" data-gift-card-copy data-copied-label="{{ 'gift_card.copied' | t }}">
+        <span class="btn__label">{{ 'gift_card.copy_code' | t }}</span>
+      </button>
+    </div>
+
+    <p class="text-small gift-card-page__redeem-note">{{ 'gift_card.how_to_redeem' | t }}</p>
+
+    {%- if gift_card.expires_on -%}
+      <p class="text-small gift-card-page__expiry">{{ 'gift_card.expires_on' | t: date: gift_card.expires_on }}</p>
+    {%- endif -%}
+
+    <div class="gift-card-page__actions">
+      <button type="button" class="btn btn--secondary" data-gift-card-print>{{ 'gift_card.print' | t }}</button>
+      <a href="{{ shop.url }}" class="btn btn--primary">{{ 'gift_card.shop_link' | t: shop: shop.name }}</a>
+    </div>
+  </div>
+</div>

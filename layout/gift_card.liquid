@@ -1,0 +1,28 @@
+<!doctype html>
+{%- liquid
+  assign color_mode_attr = 'light'
+  if settings.color_scheme_mode == 'dark'
+    assign color_mode_attr = 'dark'
+  elsif settings.color_scheme_mode == 'system'
+    assign color_mode_attr = 'system'
+  endif
+-%}
+<html lang="{{ request.locale.iso_code }}" data-color-mode="{{ color_mode_attr }}">
+  <head>
+    {%- render 'color-mode-script' -%}
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ 'gift_card.title' | t: value: gift_card.formatted_initial_value, shop: shop.name }}</title>
+    <meta name="robots" content="noindex">
+    {{ content_for_header }}
+    {%- render 'theme-assets' -%}
+  </head>
+
+  <body class="gift-card-layout">
+    {%- render 'icon-sprite' -%}
+    <main id="MainContent" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+  </body>
+</html>

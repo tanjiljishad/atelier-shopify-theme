@@ -1,0 +1,19 @@
+{%- comment -%}
+  Cookie consent banner (Milestone 11 §3): a bottom-anchored card, dismissed
+  permanently once the visitor picks Accept or Decline. Reuses the same
+  localStorage-adapter dismissal pattern as announcement-bar.liquid (M1).
+  This theme ships no analytics/marketing scripts of its own to actually
+  gate — both buttons simply record consent and close the banner; a
+  merchant's own tracking snippet (added via Theme Settings > Advanced >
+  Custom <head> code) is what would read this stored preference in a real
+  deployment.
+{%- endcomment -%}
+<div class="cookie-banner" data-cookie-banner hidden role="dialog" aria-live="polite" aria-label="{{ 'general.cookie_banner.heading' | t }}">
+  <div class="cookie-banner__body">
+    <p class="cookie-banner__text text-small">{{ 'general.cookie_banner.message' | t }}</p>
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn--secondary btn--small" data-cookie-decline>{{ 'general.cookie_banner.decline' | t }}</button>
+      <button type="button" class="btn btn--primary btn--small" data-cookie-accept>{{ 'general.cookie_banner.accept' | t }}</button>
+    </div>
+  </div>
+</div>

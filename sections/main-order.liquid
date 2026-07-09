@@ -1,0 +1,95 @@
+{%- comment -%}
+  Single order detail. Line items are intentionally not rendered through
+  cart-line-item.liquid — that snippet's markup contract is a live,
+  editable cart line (quantity stepper, remove button); a past order's line
+  items are read-only history with a fulfillment/financial status this
+  snippet has no concept of. Same visual language (image/title/variant/
+  price), different, simpler, read-only markup.
+{%- endcomment -%}
+<div class="container customer-account">
+  {% render 'customer-nav', current: 'account' %}
+
+  <div class="customer-order-detail__header">
+    <a href="{{ routes.account_url }}" class="link text-small customer-order-detail__back">
+      {% render 'icon', name: 'chevron-down', size: 14, class: 'icon--rotate-neg90' %} {{ 'customer.back_to_orders' | t }}
+    </a>
+    <h1 class="customer-order-detail__title">{{ 'customer.order_title' | t: name: order.name }}</h1>
+    <p class="text-small">{{ order.created_at | date: format: 'month_day_year' }}</p>
+    <div class="customer-order-detail__badges">
+      {% render 'badge', text: order.financial_status_label, tone: 'info' %}
+      {% render 'badge', text: order.fulfillment_status_label, tone: 'accent' %}
+    </div>
+  </div>
+
+  <div class="customer-order-detail__layout">
+    <div class="customer-order-detail__items">
+      {%- for line_item in order.line_items -%}
+        <div class="customer-order-item">
+          <div class="customer-order-item__media aspect-ratio" style="aspect-ratio: 1/1;">
+            {% render 'responsive-image', image: line_item.image, sizes: '88px', wrap: false %}
+          </div>
+          <div class="customer-order-item__info">
+            <span class="customer-order-item__title">{{ line_item.title }}</span>
+            {%- unless line_item.variant.title == 'Default Title' -%}
+              <span class="caption customer-order-item__variant">{{ line_item.variant.title }}</span>
+            {%- endunless -%}
+            <span class="text-small">{{ 'customer.quantity_label' | t: quantity: line_item.quantity }}</span>
+          </div>
+          <span class="customer-order-item__price">{{ line_item.final_line_price | money }}</span>
+        </div>
+      {%- endfor -%}
+
+      {%- if order.cancelled -%}
+        <p class="field__message field__message--error">{{ 'customer.order_cancelled' | t: reason: order.cancel_reason_label }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="customer-order-detail__summary">
+      <div class="customer-order-detail__totals">
+        <div class="customer-order-detail__total-row">
+          <span>{{ 'cart.subtotal' | t }}</span>
+          <span>{{ order.line_items_subtotal_price | money }}</span>
+        </div>
+        {%- for shipping_method in order.shipping_methods -%}
+          <div class="customer-order-detail__total-row">
+            <span>{{ shipping_method.title }}</span>
+            <span>{{ shipping_method.price | money }}</span>
+          </div>
+        {%- endfor -%}
+        {%- if order.total_tax > 0 -%}
+          <div class="customer-order-detail__total-row">
+            <span>{{ 'customer.tax' | t }}</span>
+            <span>{{ order.total_tax | money }}</span>
+          </div>
+        {%- endif -%}
+        <div class="customer-order-detail__total-row customer-order-detail__total-row--grand">
+          <span>{{ 'customer.total' | t }}</span>
+          <span>{{ order.total_price | money }}</span>
+        </div>
+      </div>
+
+      {%- if order.shipping_address -%}
+        <div class="customer-order-detail__address">
+          <h2 class="customer-account__subheading">{{ 'customer.shipping_address' | t }}</h2>
+          <div class="text-small">{{ order.shipping_address | format_address }}</div>
+        </div>
+      {%- endif -%}
+
+      {%- if order.billing_address -%}
+        <div class="customer-order-detail__address">
+          <h2 class="customer-account__subheading">{{ 'customer.billing_address' | t }}</h2>
+          <div class="text-small">{{ order.billing_address | format_address }}</div>
+        </div>
+      {%- endif -%}
+
+      <a href="{{ order.order_status_url }}" class="btn btn--outline btn--full">{{ 'customer.view_order_status' | t }}</a>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Order",
+  "settings": []
+}
+{% endschema %}

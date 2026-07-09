@@ -91,12 +91,8 @@
           <a href="{{ routes.checkout_url }}" class="btn btn--primary btn--full">{{ 'cart.checkout' | t }}</a>
           <a href="{{ routes.all_products_collection_url }}" class="btn btn--ghost btn--full">{{ 'cart.continue_shopping' | t }}</a>
 
-          {%- if settings.cart_show_payment_icons and shop.enabled_payment_types.size > 0 -%}
-            <div class="cart-page__payment-icons">
-              {%- for type in shop.enabled_payment_types -%}
-                {{ type | payment_type_svg_tag: class: 'cart-page__payment-icon' }}
-              {%- endfor -%}
-            </div>
+          {%- if settings.cart_show_payment_icons -%}
+            {% render 'payment-icons', class: 'cart-page__payment-icon' %}
           {%- endif -%}
 
           {% render 'trust-badges' %}

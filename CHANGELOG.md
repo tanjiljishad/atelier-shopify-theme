@@ -3,6 +3,413 @@
 All notable changes to the Atelier theme are documented here, one entry per
 build milestone. Dates reflect when the milestone was completed.
 
+## Milestone 11 — Premium Footer & Global Experience
+
+Replaces the Milestone-1 Dawn footer scaffold (flagged as the single most
+visible remaining gap at the end of Milestone 10) with a fully
+block-driven, Theme-Editor-configurable footer, and closes out the
+theme's last tier of sitewide UI: toast notifications, a page-transition
+loading bar, back-to-top, cookie consent, an email-capture popup, and an
+age-verification gate. With this milestone, every global storefront
+component the spec calls for is built.
+
+**New components**
+Footer: 8 block types (menu, rich text, newsletter, social, contact,
+image, payment icons, custom Liquid) composing a flexible block grid, plus
+a structural bottom bar (country/language selectors, payment icons, social,
+legal menu, copyright). Global toast notifications (bottom-anchored,
+auto-dismiss, optional action link). Page-transition loading bar (2px,
+fires on real navigations only). Back-to-top button (appears after 2
+viewport heights). Cookie consent banner (bottom card, permanent
+accept/decline). Email-capture popup (delay or 40% scroll depth,
+whichever first; suppressed for a configurable number of days after
+dismissal; reopens automatically showing the real success/error state
+after a submission). Full-screen age-verification gate (remembered 30
+days; declining exits the site rather than re-showing the same gate).
+Global settings group ("Global components") for enabling/tuning all
+three overlays.
+
+**Files created**
+`snippets/social-links.liquid`, `store-info.liquid`, `payment-icons.liquid`
+(shared primitives — see decisions), `back-to-top.liquid`,
+`cookie-banner.liquid`, `age-verification.liquid`, `email-popup.liquid`;
+`assets/back-to-top.js`, `toast.js`, `loading-bar.js`, `cookie-banner.js`,
+`age-verification.js`, `email-popup.js`.
+
+**Files modified**
+`sections/footer.liquid` (full rewrite — was the untouched Milestone-1
+Dawn scaffold: a bare `<footer class="site-footer">` with one menu and no
+CSS at all); `sections/main-cart.liquid` and `sections/main-page-contact.liquid`
+(switched to the new shared `payment-icons`/`store-info`/`social-links`
+snippets, removing their own duplicated settings and markup);
+`config/settings_schema.json` + `settings_data.json` (+"Store info &
+social" and +"Global components" settings groups); `locales/
+en.default.json` (+cookie banner/age gate/email popup/footer bottom-bar
+strings, +`cart.toast_added`); `layout/theme.liquid` (+toast container,
++loading bar element, +conditional renders for the three overlay
+snippets); `assets/theme.css` (+~640 lines: sections 68–69, footer +
+global overlays); `assets/theme.js` (+6 conditional dynamic imports);
+`assets/quick-add.js` (+toast on successful quick-add).
+
+**Architectural decisions**
+- **Social links, store contact info, and payment icons are shared global
+  snippets, not per-section settings.** Milestone 10's contact page and
+  Milestone 8's cart page each carried their own copies (contact page even
+  had its own duplicate `social_*`/`address`/`phone`/`hours` section
+  settings). Consolidating into global theme settings + three snippets
+  (`social-links.liquid`, `store-info.liquid`, `payment-icons.liquid`)
+  means the footer's social/contact/payment blocks, the contact page, and
+  the cart page all read one source of truth — a merchant updating their
+  Instagram URL now only does it once.
+- **The block grid is itself the `<accordion-group>`.** Menu and rich-text
+  blocks reuse `accordion-item.liquid`'s markup, but rather than nesting a
+  `<details>` one level inside a generic `.site-footer__block` wrapper
+  (which would put it outside `<accordion-group>`'s `:scope > details`
+  reach and silently lose the animated open/close every other accordion in
+  the theme gets), the accordion block types render `<details
+  class="site-footer__block ...">` directly as the grid item — a direct
+  child of `<accordion-group class="site-footer__blocks">`. Desktop CSS
+  (`min-width: 990px`) then strips the accordion chrome and disables the
+  summary's click (`pointer-events: none`) so it reads as a plain static
+  column — the same "one DOM, CSS repositions per breakpoint" technique as
+  the Milestone 6 filter sidebar/drawer and Milestone 7's product gallery,
+  now with the animation intact on mobile instead of falling back to
+  unanimated native `<details>` toggling.
+- **The footer's own settings stay in `sections/footer.liquid`'s schema,
+  not the new global "Global components" settings group.** Back-to-top,
+  payment icons, social links, and localization visibility are toggled
+  per-section because the footer is the only place they render — adding
+  them to global settings would just be an extra layer of indirection for
+  something already scoped correctly. Cookie banner / age gate / popup
+  went to global settings instead because `layout/theme.liquid`, not any
+  one section, decides whether to render them.
+- **The email popup's native `customer` form reuses the exact non-AJAX
+  submit pattern from `sections/newsletter.liquid` and the footer's
+  newsletter block** — same correctness-over-flash trade documented there
+  (a real page reload confirms success/error rather than an optimistic
+  client-side guess). The one wrinkle specific to a *popup* — the visitor
+  needs to actually see the result after the reload, not have it re-hidden
+  behind the same delay/scroll timers — is solved with a `{% capture %}`
+  around the form output: assigns inside a Liquid `capture` block still
+  write page-scoped variables, so `form.posted_successfully?`/`form.errors`
+  can be resolved into a `data-force-open` attribute on the wrapper *before*
+  that wrapper's opening tag is emitted, even though the `form` object
+  itself only exists inside the `{% form %}` tag nested within it.
+- **Toast wired into `quick-add.js` only — deliberately not into
+  `product-form.js` (PDP buy box) or `complete-the-look.js`.** Both of
+  those already fire two feedback signals on the PDP itself (the button's
+  inline "Added ✓" morph, and Milestone 8's cart drawer auto-opening on
+  `cart:updated`); a third, simultaneous toast there would be noise, not
+  feedback. Quick-add (product cards on collection/search/recommendation
+  grids) has no such drawer-adjacent context, and the spec's own wording
+  ties the toast specifically to quick-add's pattern.
+- **Age-gate/popup dismissals are stored as timestamps, not booleans** (via
+  the existing `theme-storage.js` localStorage adapter, unchanged) — the
+  spec's "remembered for 30 days" / "don't show again for N days" both
+  need to expire and re-trigger, which a plain boolean flag (the pattern
+  `announcement-bar.js` uses for its permanent dismiss) can't express.
+- **Declining the age gate navigates away** rather than re-showing the same
+  full-screen gate — staying on an age-restricted storefront after
+  explicitly saying "no" isn't a functioning gate.
+
+**Bug fixes (caught before shipping)**
+`assets/toast.js`'s first draft interpolated the message/action text/URL
+directly into `innerHTML` with no escaping — a real XSS risk if any of
+those values ever originated from untrusted input; fixed with the same
+`escapeHtml`/`escapeAttribute` pattern `recently-viewed.js` already uses.
+A first pass also wired the toast into `product-form.js`, then reversed
+that decision on review (see architectural decisions above) before it
+shipped.
+
+**Dawn scaffold audit**
+`sections/footer.liquid` was the last unmodified Milestone-1 Dawn
+scaffolding in the theme and is now fully rebuilt; a repo-wide search for
+the dead utility classes fixed earlier in the project (`.page-width`,
+`.rte`, bare `.button`) turns up no further matches — the handful of
+`class="..." type="button"` regex hits are the literal HTML `type="button"`
+attribute, not a leftover class. No other Dawn scaffolding remains
+anywhere in the theme.
+
+**Theme Store blockers remaining**
+None that are structural. Every required template, section, and global
+component now exists and passes Theme Check with zero errors (9 warnings,
+all pre-existing false positives: 7 `OrphanedSnippet` warnings on
+snippets only ever called from other snippets — a known Theme Check
+static-analysis gap re-verified by direct `grep` each milestone — and 2
+`UndefinedObject: 'email'` warnings on `main-reset-password.liquid`, where
+`email` is a real Shopify-provided template variable Theme Check's
+analyzer doesn't recognize). What's left before an actual submission is
+entirely *unverifiable from a static preview*, not unbuilt:
+`theme_info`'s `theme_documentation_url` (`https://example.com/...`) and
+`theme_support_email` (`support@example.com`) in `config/settings_schema.json`
+are still placeholders; none of the customer account forms, the contact
+form, the native comment form, or the two new AJAX-dependent overlays
+(email popup's reopened-success state, footer newsletter) have been
+submitted against a live store; and no theme in this project has been
+tested against Shopify's actual automated Theme Check CI or a real
+Partner Dashboard review.
+
+**Recommended scope for the Release Candidate milestone**
+1. **Placeholder metadata** — fill in `theme_info.theme_documentation_url`/
+   `theme_support_email` in `config/settings_schema.json` with real values
+   (currently the only literal placeholder text left in the theme).
+2. **Live-store smoke test** — every native form (`customer_login`,
+   `create_customer`, `recover_customer_password`,
+   `reset_customer_password`, `activate_customer_password`,
+   `customer_address`, `new_comment`, `contact`, `customer` newsletter ×3
+   call sites, `localization`, `storefront_password`) submitted against a
+   real development store at least once, since none of them can be
+   exercised from a static Theme Check pass.
+3. **Editor QA pass** — open every section in the Theme Editor and confirm
+   block/setting add-remove-reorder behaves (this is the first milestone
+   with this many new block types — footer's 8 — in one section).
+4. **Performance pass** — Lighthouse/PageSpeed on a populated dev store now
+   that every template exists; this project has never had a real
+   populated-store performance measurement, only per-milestone code-level
+   choices (lazy imports, `loading="lazy"`, etc.).
+5. **Final cross-milestone visual QA** — a full click-through in both
+   light and dark mode, both color-scheme-mode settings, and at
+   mobile/tablet/desktop, now that the whole template surface is complete
+   for the first time.
+6. Package for submission: `theme_store_screenshot` assets, `README`, and
+   the actual `shopify theme push`/zip step — none of which have been part
+   of any milestone so far.
+
+No net-new feature work is recommended — every component the original
+brief and every explicit follow-up request called for now exists.
+
+---
+
+## Milestone 10 — Premium Blog & Customer Experience
+
+Completes every remaining customer-facing template the theme was still
+missing: blog index, article, all seven native customer account templates,
+contact page, and a full rebuild of search. Combined with Milestone 9, this
+closes out the full required-template list for Theme Store submission (see
+Known follow-ups below for what's genuinely still open). No spec section in
+the PDF covers customer accounts or the article/contact page layouts beyond
+the blog *card* component — every one of these extends the established
+visual language directly (Marcellus headings, the token system, `.prose`,
+card/empty-state/pagination/accordion primitives) rather than inventing a
+new one.
+
+**New components**
+Blog card (spec §5.5, standard + featured modes), blog index (featured
+article, tag filter via real `/tagged/` URLs, grid, pagination, empty
+state), article page (hero image, author/date/reading-time, rich `.prose`
+now covering tables/images/embedded video, share button, prev/next nav,
+related articles, native comments, optional newsletter), reading-time
+estimator, customer account nav, login + password recovery (one real toggle
+component), registration, password reset, account activation, account
+dashboard + order history (Shopify-native combined template), order detail,
+address book (native add/edit/delete, shared field markup), contact page
+(native contact form, store info, social links, map placeholder), search
+results rebuild (product-card grid, mixed result types, empty state with
+popular-search chips + recommended-collection fallback).
+
+**Files created**
+`layout/password.liquid`, `gift_card.liquid` *(Milestone 9)*;
+`sections/main-blog.liquid`, `main-article.liquid`, `main-login.liquid`,
+`main-register.liquid`, `main-reset-password.liquid`,
+`main-activate-account.liquid`, `main-account.liquid`, `main-order.liquid`,
+`main-addresses.liquid`, `main-page-contact.liquid`;
+`snippets/blog-card.liquid`, `reading-time.liquid`, `customer-nav.liquid`,
+`password-field.liquid`, `address-form.liquid`;
+`templates/blog.json`, `article.json`, `page.contact.json`,
+`customers/login.json`, `register.json`, `reset_password.json`,
+`activate_account.json`, `account.json`, `order.json`, `addresses.json`;
+`assets/customer-forms.js`.
+
+**Files modified**
+`assets/theme.css` (+~1300 lines: sections 59–67 plus prose table/img/
+iframe/hr coverage), `assets/theme.js` (+customer-forms.js import),
+`snippets/breadcrumb.liquid` (+blog/article trail), `snippets/share-button.liquid`
+(generalized from product-only to accept any title/url — see decisions),
+`snippets/buy-box.liquid` (updated for share-button's new signature),
+`snippets/icon-sprite.liquid` (+11 icons: contact/social/password-visibility/
+comments), `sections/main-search.liquid` (full rebuild), `locales/
+en.default.json` (+~110 strings), `config/settings_schema.json` +
+`settings_data.json` (+"Blog" settings group).
+
+**Architectural decisions**
+- **`share-button.liquid` generalized rather than duplicated.** It was
+  product-only (Milestone 7); the article page needed the identical
+  component for a different object. Changed its one param from `product` to
+  generic `title`/`url`, updated its one existing caller (`buy-box.liquid`)
+  — one component, two callers, exactly per instruction #4 rather than a
+  parallel `article-share-button.liquid`.
+- **Account dashboard and order history are one template, not two** —
+  matching Shopify's own native architecture (`customers/account.liquid`
+  has never been two separate templates on the platform). Building a
+  second "dashboard summary" page that just links to this one would be
+  pure maintenance burden for a distinction the platform itself doesn't
+  make. Chosen deliberately per instruction #6.
+- **Address deletion uses Shopify's documented method-override form**
+  (`POST` + hidden `_method: delete` field to `{{ routes.account_addresses_url }}/{{ address.id }}`)
+  rather than a JS-driven fetch — a real, working link even if JS never
+  loads, consistent with every other "real control first" pattern in this
+  theme.
+- **Province is a plain text field, not a country-dependent dynamic
+  select.** Shopify accepts free-text province values, and a real dynamic
+  province list needs the platform's own provinces dataset wired up in a
+  way that risks being subtly wrong without testing against a live store.
+  Flagged below as a candidate refinement, not silently shipped as if it
+  were the more polished dynamic version.
+- **Login/recover-password is one real toggle, not two pages.** Both forms
+  render fully server-side and are both genuinely functional without JS;
+  `assets/customer-forms.js` only hides one at a time for visitors who have
+  it, restoring whichever form has feedback to show (error or success) so a
+  successful "check your email" message can never be hidden by the same
+  script that would otherwise auto-collapse it.
+- **Contact page doesn't depend on `footer.liquid`.** The footer is still
+  the bare scaffold flagged as out of scope in every prior milestone; making
+  the contact page's social links/store info depend on a footer rebuild
+  would have pulled that rebuild into this milestone's scope. Self-contained
+  settings instead — duplicating a *few* URL fields is a smaller cost than
+  a footer redesign no milestone has actually asked for yet.
+- **Search suggestions architecture was already built** (Milestone 3's
+  predictive-search.js/search-drawer.liquid) — this milestone's brief asks
+  for it again under Search, but a second suggestion engine for the results
+  page itself would duplicate that exactly. The results page only needed to
+  correctly render `search.results`, which it now does.
+
+**Bug fixes (caught before shipping)**
+`main-search.liquid`'s popular-search chips piped a filter directly into a
+`for` loop's array expression (`for term in settings.popular_searches |
+split: ','`) — invalid Liquid syntax, a hard `LiquidHTMLSyntaxError`; fixed
+by assigning the split result to a variable first. `main-blog.liquid`'s
+"All posts" tag used `{% unless current_tags %}` to detect "no filter
+active" — but empty arrays are *truthy* in Liquid (unlike JavaScript), so
+this never actually matched; replaced with an explicit `current_tags.size
+== 0` check. `assets/customer-forms.js`'s recover-form visibility logic
+only checked for an error message before deciding whether to hide the
+form — after a *successful* submission (no error, just a success message),
+it would have hidden the form immediately, burying the "check your email"
+confirmation the visitor just triggered; fixed to check for either message
+type and hide the login form instead when the recover form has feedback to
+show. A leftover, syntactically-dubious `related_articles` assignment in
+`main-article.liquid` (abandoned mid-edit in favor of a manual loop) was
+caught and removed before it ever reached Theme Check.
+
+**Known follow-ups for Milestone 11**
+Province fields are plain text rather than a country-dependent dynamic
+select (see decisions above). Two Theme Check warnings
+(`UndefinedObject: 'email'` in `main-reset-password.liquid`) reflect a
+template-scoped global Theme Check's static analyzer doesn't have full
+coverage of, not an actual bug — `email` is genuinely provided by Shopify
+on the reset-password template. None of the seven customer account forms,
+the comment form, or the contact form have been submitted against a live
+store — all built strictly to Shopify's documented form-type contracts
+(`customer_login`, `create_customer`, `recover_customer_password`,
+`reset_customer_password`, `activate_customer_password`, `customer_address`,
+`new_comment`, `contact`), untestable further from a static QA preview.
+`footer.liquid` remains the bare Milestone-1 scaffold (`.page-width` dead
+class, no columns/newsletter/social/payment icons) — every milestone
+including this one has deliberately left it alone rather than accept scope
+creep, but it's now the single most visible remaining gap, appearing on
+literally every page.
+
+---
+
+## Milestone 9 — Theme Store Compliance Pass
+
+A cross-cutting audit against Shopify's published Theme Store requirements,
+not a new user-facing feature milestone: filled in required templates that
+every prior milestone had explicitly scoped out, added the social/SEO
+surface no milestone had touched yet, and fixed a couple of correctness
+gaps the audit surfaced along the way.
+
+**New components**
+Password/maintenance page (spec §5.6: full-bleed brand image, centered
+logo, one-liner, native `storefront_password` form, optional newsletter
+signup reusing Milestone 5's newsletter section verbatim via `{% section %}`
+rather than a second copy), gift card page (its own minimal print-friendly
+layout — code, balance, expiry, copy-to-clipboard, print button — no header/
+footer chrome, matching Shopify's own convention for this template type),
+all-collections page (reuses Milestone 4's collection-card.liquid exactly),
+favicon + Open Graph + Twitter Card meta tags, Product/CollectionPage
+JSON-LD structured data.
+
+**Files created**
+`layout/password.liquid`, `layout/gift_card.liquid`;
+`sections/main-password.liquid`, `main-list-collections.liquid`;
+`templates/password.json`, `list-collections.json`, `gift_card.liquid`;
+`snippets/meta-tags.liquid`, `theme-assets.liquid`, `color-mode-script.liquid`;
+`assets/gift-card.js`.
+
+**Files modified**
+`layout/theme.liquid` (extracted shared `<head>` boilerplate into
+`theme-assets.liquid`/`color-mode-script.liquid` so the two new layouts
+don't duplicate it), `config/settings_schema.json` + `settings_data.json`
+(+"Social & SEO" settings group; `theme_version` bumped 0.1.0 → 1.0.0 to
+reflect actual shipping state), `locales/en.default.json` (+~20 strings),
+`package.json` (version bump to match), `assets/theme.js` (+gift-card.js
+dynamic import), `assets/theme.css` (+~220 lines: sections 56–58).
+
+**Architectural decisions**
+- **`page_image` doesn't exist as a Shopify global** — unlike `page_title`/
+  `page_description`, which this theme already used and are genuinely
+  documented, there's no single unified "give me the right image for this
+  page" object. `meta-tags.liquid` resolves the share image explicitly per
+  `template.name` (product/collection/article/blog) instead of guessing at
+  an object that isn't real.
+- **`qr_code` is not a valid Liquid filter** — Theme Check flagged it as an
+  `UnknownFilter` error the moment it was written. Removed rather than
+  guessed at further; the gift card page still shows the code as
+  selectable/copyable text plus a print button, which is what's actually
+  required.
+- **The three pre-existing "orphaned" snippets (`card`, `divider`,
+  `tooltip`) were deliberately left alone**, not deleted. All three are
+  legitimate, well-built, documented reusable primitives without a consumer
+  yet — normal for a primitives library (Dawn ships several of these too),
+  not evidence of broken functionality. `tooltip.liquid` specifically was
+  considered for wiring into the PDP's color swatches (spec: "name on hover
+  tooltip"), but its trigger element calls `preventDefault()` on click for
+  touch tap-to-toggle — forcing that onto a swatch's `<label>` (which must
+  natively activate its radio input on click) would have broken variant
+  selection to satisfy one cosmetic spec detail. Not worth the risk.
+- **`theme_info`'s documentation/support URLs are still placeholders**
+  (`example.com`) — these are real business identity details only the
+  merchant/theme owner can supply; Theme Store will reject placeholder URLs
+  at actual submission time. Flagged here rather than guessed at.
+
+**Bug fixes (caught before shipping)**
+Both new layouts (`password.liquid`, `gift_card.liquid`) initially set
+`data-color-mode` server-side but never included the blocking inline script
+that resolves a "user" (visitor-toggleable) dark-mode preference from
+localStorage before first paint — every visitor with that preference set
+would have seen these two pages flash to light mode regardless of their
+saved choice, since only `theme.liquid` had the inline script inline rather
+than shared. Extracted into `snippets/color-mode-script.liquid` and used by
+all three layouts, fixing both silently before it shipped. `gift_card.liquid`
+also had no `<main>` landmark at all — content sat directly in `<body>` with
+no landmark for screen-reader users to navigate to; added.
+
+**Known follow-ups — Theme Store submission is not yet complete**
+The following are genuine gaps, not covered by this pass, because Shopify's
+own Theme Store requirements call for them but nothing in this project's
+scope (across all 9 milestones so far) has specified their design, and
+guessing at full page layouts for them risks shipping something that
+doesn't match how this merchant actually wants their store to work:
+- **Blog + article templates** (`templates/blog.json`, `article.json` +
+  matching sections) — required by Theme Store, not yet built. The spec PDF
+  only describes the blog *card* component (§5.5, already reusable), not
+  the full blog index or article page layout.
+- **Customer account templates** — `customers/login.json`, `register.json`,
+  `account.json`, `order.json`, `addresses.json`, `reset_password.json`,
+  `activate_account.json`. Also Theme-Store-required; the spec PDF has no
+  section describing these at all beyond one passing mention of an "account
+  orders" empty state.
+- `theme_info`'s support email/documentation URL need real values before
+  actual submission.
+- Theme Store's performance benchmarks (Lighthouse-based) and full
+  accessibility audit haven't been run against a live, published store —
+  everything here is built to the platform's documented contracts and
+  passes Theme Check cleanly, but neither substitutes for testing against
+  the real submission checklist.
+
+---
+
 ## Milestone 8 — Premium Cart Experience
 
 **New components**

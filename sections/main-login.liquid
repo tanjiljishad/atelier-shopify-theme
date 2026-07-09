@@ -1,0 +1,59 @@
+{%- comment -%}
+  Customer login + password recovery. Both real forms render fully
+  server-side; assets/customer-forms.js only toggles which one is visible
+  (see password-field.liquid's comment on the same progressive-enhancement
+  contract) — a no-JS visitor sees both, fully functional, stacked.
+{%- endcomment -%}
+<div class="container customer-form-page">
+  <div class="customer-form-page__header">
+    <h1 class="customer-form-page__title">{{ 'customer.login_title' | t }}</h1>
+  </div>
+
+  <div data-login-form>
+    {%- form 'customer_login', class: 'customer-form' -%}
+      {%- if form.errors -%}
+        <p class="field__message field__message--error" role="alert">{{ form.errors.messages.first }}</p>
+      {%- endif -%}
+
+      {% render 'field', id: 'CustomerEmail', name: 'customer[email]', type: 'email', label: 'customer.email' | t, autocomplete: 'email', required: true %}
+      {% render 'password-field', id: 'CustomerPassword', name: 'customer[password]', label: 'customer.password' | t, autocomplete: 'current-password', required: true %}
+
+      <div class="customer-form__actions">
+        <button type="submit" class="btn btn--primary btn--full">{{ 'customer.sign_in' | t }}</button>
+        <button type="button" class="btn btn--ghost" data-show-recover>{{ 'customer.forgot_password' | t }}</button>
+      </div>
+    {%- endform -%}
+
+    <p class="customer-form-page__footer">
+      {{ 'customer.no_account' | t }}
+      <a href="{{ routes.account_register_url }}">{{ 'customer.create_account' | t }}</a>
+    </p>
+  </div>
+
+  <div data-recover-form>
+    {%- form 'recover_customer_password', class: 'customer-form' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="field__message field__message--success" role="status">{{ 'customer.recover_success' | t }}</p>
+      {%- endif -%}
+      {%- if form.errors -%}
+        <p class="field__message field__message--error" role="alert">{{ form.errors.messages.first }}</p>
+      {%- endif -%}
+
+      <p class="text-small customer-form-page__intro">{{ 'customer.recover_intro' | t }}</p>
+
+      {% render 'field', id: 'RecoverEmail', name: 'email', type: 'email', label: 'customer.email' | t, autocomplete: 'email', required: true %}
+
+      <div class="customer-form__actions">
+        <button type="submit" class="btn btn--primary btn--full">{{ 'customer.recover_submit' | t }}</button>
+        <button type="button" class="btn btn--ghost" data-show-login>{{ 'customer.back_to_login' | t }}</button>
+      </div>
+    {%- endform -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Login",
+  "settings": []
+}
+{% endschema %}

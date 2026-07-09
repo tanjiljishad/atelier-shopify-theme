@@ -1,0 +1,68 @@
+{%- comment -%}
+  Address book. Add/edit forms are native <details> disclosures (same
+  zero-JS pattern as cart-note.liquid/the discount field) rather than a JS
+  modal — each existing address gets its own collapsed "Edit" panel, all
+  built on the one shared address-form.liquid so the field markup never
+  duplicates. Delete uses Shopify's documented method-override form
+  (POST + _method: delete) — a real, working link even without JS.
+{%- endcomment -%}
+<div class="container customer-account">
+  {% render 'customer-nav', current: 'addresses' %}
+
+  <div class="customer-account__header">
+    <h1 class="customer-account__title">{{ 'customer.addresses_title' | t }}</h1>
+  </div>
+
+  <details class="customer-address-form-toggle">
+    <summary class="btn btn--primary customer-address-form-toggle__trigger">{{ 'customer.add_address' | t }}</summary>
+    <div class="customer-address-form-toggle__panel">
+      {%- form 'customer_address', customer.new_address, class: 'customer-form' -%}
+        {% render 'address-form', address: customer.new_address, form_id: 'NewAddress' %}
+        <button type="submit" class="btn btn--primary">{{ 'customer.save_address' | t }}</button>
+      {%- endform -%}
+    </div>
+  </details>
+
+  {%- if customer.addresses.size > 0 -%}
+    <div class="customer-addresses">
+      {%- for address in customer.addresses -%}
+        <div class="customer-address-card">
+          <div class="text-small customer-address-card__body">
+            {{ address | format_address }}
+          </div>
+          {%- if address == customer.default_address -%}
+            {% render 'badge', text: 'customer.default' | t, tone: 'accent' %}
+          {%- endif -%}
+
+          <details class="customer-address-form-toggle">
+            <summary class="btn btn--outline customer-address-form-toggle__trigger">{{ 'customer.edit_address' | t }}</summary>
+            <div class="customer-address-form-toggle__panel">
+              {%- form 'customer_address', address, class: 'customer-form' -%}
+                {% render 'address-form', address: address, form_id: 'Address' | append: address.id %}
+                <button type="submit" class="btn btn--primary">{{ 'customer.save_address' | t }}</button>
+              {%- endform -%}
+            </div>
+          </details>
+
+          <form action="{{ routes.account_addresses_url }}/{{ address.id }}" method="post" class="customer-address-card__delete-form">
+            <input type="hidden" name="_method" value="delete">
+            <button type="submit" class="btn btn--ghost">{{ 'customer.delete_address' | t }}</button>
+          </form>
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    <div class="collection-empty-state">
+      {% render 'icon', name: 'map-pin', size: 48 %}
+      <h2 class="collection-empty-state__title">{{ 'customer.no_addresses_title' | t }}</h2>
+      <p class="text-small">{{ 'customer.no_addresses_message' | t }}</p>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Addresses",
+  "settings": []
+}
+{% endschema %}

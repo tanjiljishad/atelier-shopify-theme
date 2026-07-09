@@ -11,6 +11,10 @@
     product title. The global `collection` object is already populated by
     Shopify whenever a product is viewed through a /collections/x/products/y
     URL, so this reuses it rather than needing a setting to pick one.
+  - article (optional, pass alongside blog): renders Home → blog title →
+    article title.
+  - blog (optional): renders Home → blog title (used alone on a blog index;
+    combine with `article` for an article page's trail).
 {%- endcomment -%}
 <nav class="breadcrumb" aria-label="{{ 'accessibility.breadcrumb' | t }}">
   <ol class="breadcrumb__list list-unstyled">
@@ -27,6 +31,20 @@
       <li class="breadcrumb__item" aria-hidden="true">/</li>
       <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">
         {{ product.title }}
+      </li>
+    {%- elsif article -%}
+      <li class="breadcrumb__item" aria-hidden="true">/</li>
+      <li class="breadcrumb__item">
+        <a href="{{ blog.url }}">{{ blog.title }}</a>
+      </li>
+      <li class="breadcrumb__item" aria-hidden="true">/</li>
+      <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">
+        {{ article.title }}
+      </li>
+    {%- elsif blog -%}
+      <li class="breadcrumb__item" aria-hidden="true">/</li>
+      <li class="breadcrumb__item breadcrumb__item--current" aria-current="page">
+        {{ blog.title }}
       </li>
     {%- elsif collection -%}
       <li class="breadcrumb__item" aria-hidden="true">/</li>

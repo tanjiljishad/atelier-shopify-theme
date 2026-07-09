@@ -1,34 +1,114 @@
-<section class="section">
-  <div class="container">
-    <h1>{{ 'general.search' | t }}</h1>
+{%- comment -%}
+  Search results page. Reuses product-card.liquid for product results
+  (Milestone 4) and collection-empty-state's visual pattern for the empty
+  state. "Search suggestions architecture" (per Milestone 10's brief) is
+  already built — predictive-search.js/search-drawer.liquid (Milestone 3)
+  own the as-you-type suggestion UX; this page is what a submitted search
+  (or a JS-disabled visitor) lands on, and only needs to render
+  `search.results` correctly, not a second suggestion engine.
+{%- endcomment -%}
+{% paginate search.results by 24 %}
+  <div class="container container--wide">
+    <div class="search-page__header">
+      <h1 class="search-page__title">
+        {%- if search.performed -%}
+          {{ 'general.search_for' | t: terms: search.terms }}
+        {%- else -%}
+          {{ 'general.search' | t }}
+        {%- endif -%}
+      </h1>
+      <form action="{{ routes.search_url }}" method="get" role="search" class="search-page__form">
+        <input type="hidden" name="type" value="product,page,article">
+        <div class="field__control">
+          <input
+            type="search"
+            name="q"
+            class="field__input"
+            value="{{ search.terms | escape }}"
+            placeholder="{{ 'general.search_placeholder' | t }}"
+            aria-label="{{ 'general.search' | t }}"
+          >
+        </div>
+        <button type="submit" class="btn btn--primary">{{ 'general.search' | t }}</button>
+      </form>
+      {%- if search.performed -%}
+        <p class="text-small">{{ 'general.search_results_count' | t: count: search.results_count }}</p>
+      {%- endif -%}
+    </div>
 
-    <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
-      <input type="search" name="q" value="{{ search.terms | escape }}" placeholder="Search products">
-      <button class="btn btn--primary" type="submit">Search</button>
-    </form>
+    {%- if search.performed -%}
+      {%- if search.results.size > 0 -%}
+        <div class="grid grid-cols-4" data-scroll-reveal>
+          {%- for item in search.results -%}
+            <div data-scroll-reveal-child>
+              {%- case item.object_type -%}
+                {%- when 'product' -%}
+                  {% render 'product-card', product: item, priority: forloop.index0 < 4 %}
+                {%- when 'article' -%}
+                  {% render 'blog-card', article: item %}
+                {%- else -%}
+                  <a href="{{ item.url }}" class="search-page__page-result">
+                    <span class="caption">{{ 'general.search_pages' | t }}</span>
+                    <h3>{{ item.title }}</h3>
+                    <p class="text-small">{{ item.content | strip_html | truncate: 120 }}</p>
+                  </a>
+              {%- endcase -%}
+            </div>
+          {%- endfor -%}
+        </div>
 
-    {% if search.performed %}
-      <div class="grid grid-cols-4">
-        {% for item in search.results %}
-          {% if item.object_type == 'product' %}
-            {% render 'product-card', product: item %}
-          {% else %}
-            <article>
-              <h2><a href="{{ item.url }}">{{ item.title }}</a></h2>
-              <p>{{ item.content | strip_html | truncate: 120 }}</p>
-            </article>
-          {% endif %}
-        {% else %}
-          <p>No results found.</p>
-        {% endfor %}
-      </div>
-    {% endif %}
+        {% render 'pagination', paginate: paginate, style: 'numbered' %}
+      {%- else -%}
+        <div class="collection-empty-state">
+          {% render 'icon', name: 'search', size: 48 %}
+          <h2 class="collection-empty-state__title">{{ 'general.search_no_results' | t }}</h2>
+          <p class="text-small">{{ 'general.search_no_results_message' | t }}</p>
+        </div>
+
+        {%- if section.settings.popular_searches != blank -%}
+          {%- assign popular_search_terms = section.settings.popular_searches | split: ',' -%}
+          <div class="search-page__popular">
+            <p class="caption">{{ 'general.search_popular' | t }}</p>
+            <div class="search-page__popular-chips">
+              {%- for term in popular_search_terms -%}
+                <a href="{{ routes.search_url }}?q={{ term | strip | url_encode }}" class="search-page__chip">{{ term | strip }}</a>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.recommended_collection != blank -%}
+          <div class="section--rhythm">
+            {% render 'section-heading', heading: 'general.search_recommended' | t, align: 'left' %}
+            <div class="grid grid-cols-4">
+              {%- for product in section.settings.recommended_collection.products limit: 4 -%}
+                {% render 'product-card', product: product %}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
   </div>
-</section>
+{% endpaginate %}
 
 {% schema %}
 {
   "name": "Search",
-  "settings": []
+  "settings": [
+    {
+      "type": "text",
+      "id": "popular_searches",
+      "label": "Popular searches",
+      "info": "Comma-separated list of suggested search terms, shown when a search returns no results.",
+      "default": "Best sellers, New arrivals, Sale"
+    },
+    {
+      "type": "collection",
+      "id": "recommended_collection",
+      "label": "No-results recommendations",
+      "info": "Shown when a search returns no results."
+    }
+  ]
 }
 {% endschema %}

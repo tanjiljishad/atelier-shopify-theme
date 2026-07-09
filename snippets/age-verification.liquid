@@ -1,0 +1,20 @@
+{%- comment -%}
+  Full-screen age gate (Milestone 11 §3): blocks the page behind a scrim +
+  focus-trapped dialog until confirmed, remembered for 30 days via the same
+  storage-adapter + focus-trap primitives every other overlay in the theme
+  already uses (assets/theme-storage.js, assets/motion.js's createFocusTrap).
+  Declining sends the visitor away rather than re-showing the same gate —
+  staying on an age-restricted storefront after saying "no" isn't a real gate.
+{%- endcomment -%}
+<div class="age-gate" data-age-gate hidden>
+  <div class="age-gate__scrim"></div>
+  <div class="age-gate__panel" role="dialog" aria-modal="true" aria-label="{{ 'general.age_gate.heading' | t }}">
+    {% render 'icon', name: 'shield-check', size: 32, class: 'age-gate__icon' %}
+    <h2 class="age-gate__heading">{{ 'general.age_gate.heading' | t }}</h2>
+    <p class="age-gate__message text-small">{{ 'general.age_gate.message' | t }}</p>
+    <div class="age-gate__actions">
+      <button type="button" class="btn btn--primary" data-age-gate-confirm>{{ 'general.age_gate.confirm' | t }}</button>
+      <button type="button" class="btn btn--secondary" data-age-gate-deny>{{ 'general.age_gate.deny' | t }}</button>
+    </div>
+  </div>
+</div>

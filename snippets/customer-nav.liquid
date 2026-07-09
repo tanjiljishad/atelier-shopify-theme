@@ -1,0 +1,16 @@
+{%- comment -%}
+  Shared account section nav (Dashboard/orders · Addresses · Log out) —
+  every logged-in customer template (account, order, addresses) renders this
+  identically, so it exists once rather than four times.
+
+  Accepts: current (required): 'account' | 'addresses' — which item to mark active.
+{%- endcomment -%}
+<nav class="customer-nav" aria-label="{{ 'customer.account_nav' | t }}">
+  <a href="{{ routes.account_url }}" class="customer-nav__link{% if current == 'account' %} is-active{% endif %}">
+    {{ 'customer.orders_title' | t }}
+  </a>
+  <a href="{{ routes.account_addresses_url }}" class="customer-nav__link{% if current == 'addresses' %} is-active{% endif %}">
+    {{ 'customer.addresses_title' | t }}
+  </a>
+  <a href="{{ routes.account_logout_url }}" class="customer-nav__link">{{ 'customer.log_out' | t }}</a>
+</nav>

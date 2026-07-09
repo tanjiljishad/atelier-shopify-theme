@@ -1,18 +1,204 @@
-<footer class="site-footer">
-  <div class="page-width site-footer__inner">
-    <div>
-      <strong>{{ shop.name }}</strong>
-      {% if section.settings.text != blank %}
-        <p>{{ section.settings.text }}</p>
-      {% endif %}
-    </div>
+{%- comment -%}
+  Premium footer (spec §5.5: "ink background, ivory text. Rows: (1) 4 link
+  columns + newsletter mini-form, (2) hairline rule (ivory 12%), (3) locale/
+  currency selects, payment icons (outline style), social, legal Caption at
+  60% ivory. Massive 96px padding."). Replaces the Milestone-1 Dawn scaffold
+  entirely.
 
-    <nav class="site-footer__nav" aria-label="Footer menu">
-      {% for link in section.settings.menu.links %}
-        <a href="{{ link.url }}">{{ link.title }}</a>
-      {% endfor %}
-    </nav>
+  Content blocks (menu/rich_text/newsletter/social/contact/image/
+  payment_icons/liquid) compose the flexible upper area so merchants can
+  rearrange/add/remove without code — spec's "Row 1" is the default shape,
+  not a hard requirement, once blocks make it merchant-configurable. The
+  bottom bar (locale/language selectors, legal menu, copyright) stays
+  structural rather than block-driven since it isn't really "content" a
+  merchant rearranges, matching spec's Row 2/3.
+
+  Menu and rich_text blocks reuse accordion-item.liquid's exact markup —
+  same "one DOM, CSS repositions per breakpoint" technique as Milestone 6's
+  filter sidebar/drawer and Milestone 7's product gallery: desktop CSS
+  forces the panel open (a plain static column), mobile leaves the native
+  <details> collapse behavior alone. No JS branching on viewport width.
+  The block grid itself is the <accordion-group> (each accordion <details>
+  is one of its direct children, same contract as collection-filters.liquid
+  and product-accordions.liquid), so accordion.js's existing animated
+  open/close works for the mobile case with zero changes to that file; the
+  non-accordion block types (newsletter/social/contact/image/payment_icons/
+  liquid) are just plain siblings the group ignores.
+
+  Social/contact/payment blocks reuse social-links.liquid/store-info.liquid/
+  payment-icons.liquid verbatim — the exact snippets the contact page
+  (Milestone 10) and cart page (Milestone 8) already use, reading the same
+  global settings, not a fourth copy of any of them.
+{%- endcomment -%}
+<footer class="site-footer color-scheme-{{ section.settings.color_scheme }}">
+  <div class="container container--wide site-footer__inner">
+    {%- if section.blocks.size > 0 -%}
+      <accordion-group class="site-footer__blocks" style="--footer-columns: {{ section.blocks.size | at_most: 5 }};">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'menu' -%}
+              <details class="accordion-item site-footer__block site-footer__accordion" open {{ block.shopify_attributes }}>
+                <summary class="accordion-item__header site-footer__block-heading">
+                  <span class="accordion-item__title">{{ block.settings.heading }}</span>
+                  <span class="accordion-item__icon">{% render 'icon', name: 'plus' %}</span>
+                </summary>
+                <div class="accordion-item__panel">
+                  <nav class="accordion-item__panel-inner site-footer__menu" aria-label="{{ block.settings.heading | escape }}">
+                    {%- for link in block.settings.menu.links -%}
+                      <a href="{{ link.url }}">{{ link.title }}</a>
+                    {%- endfor -%}
+                  </nav>
+                </div>
+              </details>
+
+            {%- when 'rich_text' -%}
+              <details class="accordion-item site-footer__block site-footer__accordion" open {{ block.shopify_attributes }}>
+                <summary class="accordion-item__header site-footer__block-heading">
+                  <span class="accordion-item__title">{{ block.settings.heading }}</span>
+                  <span class="accordion-item__icon">{% render 'icon', name: 'plus' %}</span>
+                </summary>
+                <div class="accordion-item__panel">
+                  <div class="accordion-item__panel-inner prose text-small">
+                    {%- if block.settings.logo != blank -%}
+                      {% render 'responsive-image', image: block.settings.logo, sizes: '160px', wrap: false, class: 'site-footer__logo' %}
+                    {%- endif -%}
+                    {{ block.settings.content }}
+                  </div>
+                </div>
+              </details>
+
+            {%- when 'newsletter' -%}
+              <div class="site-footer__block site-footer__newsletter" {{ block.shopify_attributes }}>
+                <p class="site-footer__block-heading-static">{{ block.settings.heading }}</p>
+                {%- form 'customer', id: 'FooterNewsletterForm', class: 'site-footer__newsletter-form' -%}
+                  <input type="hidden" name="contact[tags]" value="newsletter">
+                  {%- if form.posted_successfully? -%}
+                    <p class="text-small site-footer__newsletter-success">
+                      {% render 'icon', name: 'check', size: 16 %} {{ 'sections.newsletter.success' | t }}
+                    </p>
+                  {%- else -%}
+                    <div class="site-footer__newsletter-row">
+                      <label class="visually-hidden" for="FooterNewsletterForm-email">{{ 'sections.newsletter.email_label' | t }}</label>
+                      <input
+                        type="email"
+                        id="FooterNewsletterForm-email"
+                        name="contact[email]"
+                        class="site-footer__newsletter-input"
+                        placeholder="{{ 'sections.newsletter.email_placeholder' | t }}"
+                        required
+                      >
+                      <button type="submit" class="btn-icon site-footer__newsletter-submit" aria-label="{{ 'sections.newsletter.submit' | t }}">
+                        {% render 'icon', name: 'chevron-down', size: 18, class: 'icon--rotate-neg90' %}
+                      </button>
+                    </div>
+                  {%- endif -%}
+                {%- endform -%}
+              </div>
+
+            {%- when 'social' -%}
+              <div class="site-footer__block" {{ block.shopify_attributes }}>
+                <p class="site-footer__block-heading-static">{{ block.settings.heading }}</p>
+                {% render 'social-links', icon_size: 20 %}
+              </div>
+
+            {%- when 'contact' -%}
+              <div class="site-footer__block" {{ block.shopify_attributes }}>
+                <p class="site-footer__block-heading-static">{{ block.settings.heading }}</p>
+                {% render 'store-info' %}
+              </div>
+
+            {%- when 'image' -%}
+              <div class="site-footer__block" {{ block.shopify_attributes }}>
+                {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}">{%- endif -%}
+                  {% render 'responsive-image', image: block.settings.image, sizes: '200px', wrap: false, class: 'site-footer__block-image' %}
+                {%- if block.settings.link != blank -%}</a>{%- endif -%}
+              </div>
+
+            {%- when 'payment_icons' -%}
+              <div class="site-footer__block" {{ block.shopify_attributes }}>
+                <p class="site-footer__block-heading-static">{{ block.settings.heading }}</p>
+                {% render 'payment-icons' %}
+              </div>
+
+            {%- when 'liquid' -%}
+              <div class="site-footer__block site-footer__custom-liquid" {{ block.shopify_attributes }}>
+                {{ block.settings.liquid_code }}
+              </div>
+          {%- endcase -%}
+        {%- endfor -%}
+      </accordion-group>
+    {%- endif -%}
+
+    <div class="site-footer__divider"></div>
+
+    <div class="site-footer__bottom">
+      {%- liquid
+        assign show_country = false
+        assign show_language = false
+        if section.settings.show_localization and localization.available_countries.size > 1
+          assign show_country = true
+        endif
+        if section.settings.show_localization and localization.available_languages.size > 1
+          assign show_language = true
+        endif
+      -%}
+      {%- if show_country or show_language -%}
+        {%- form 'localization', class: 'site-footer__localization' -%}
+          {%- if show_country -%}
+            <div class="site-footer__localization-field">
+              <label class="visually-hidden" for="FooterCountry">{{ 'general.country' | t }}</label>
+              <select name="country_code" id="FooterCountry" class="site-footer__localization-select" onchange="this.form.submit();">
+                {%- for country in localization.available_countries -%}
+                  <option value="{{ country.iso_code }}" {% if country.iso_code == localization.country.iso_code %}selected{% endif %}>
+                    {{ country.name }} ({{ country.currency.iso_code }})
+                  </option>
+                {%- endfor -%}
+              </select>
+              {% render 'icon', name: 'chevron-down', size: 14 %}
+            </div>
+          {%- endif -%}
+          {%- if show_language -%}
+            <div class="site-footer__localization-field">
+              <label class="visually-hidden" for="FooterLanguage">{{ 'general.language' | t }}</label>
+              <select name="locale_code" id="FooterLanguage" class="site-footer__localization-select" onchange="this.form.submit();">
+                {%- for language in localization.available_languages -%}
+                  <option value="{{ language.iso_code }}" {% if language.iso_code == localization.language.iso_code %}selected{% endif %}>
+                    {{ language.endonym_name | capitalize }}
+                  </option>
+                {%- endfor -%}
+              </select>
+              {% render 'icon', name: 'chevron-down', size: 14 %}
+            </div>
+          {%- endif -%}
+          <noscript><button type="submit" class="btn btn--outline">{{ 'general.update' | t }}</button></noscript>
+        {%- endform -%}
+      {%- endif -%}
+
+      {%- if section.settings.show_payment_icons -%}
+        {% render 'payment-icons' %}
+      {%- endif -%}
+
+      {%- if section.settings.show_social -%}
+        {% render 'social-links', icon_size: 16 %}
+      {%- endif -%}
+
+      {%- if section.settings.legal_menu != blank -%}
+        <nav class="site-footer__legal" aria-label="{{ 'general.legal' | t }}">
+          {%- for link in section.settings.legal_menu.links -%}
+            <a href="{{ link.url }}" class="caption">{{ link.title }}</a>
+          {%- endfor -%}
+        </nav>
+      {%- endif -%}
+
+      <p class="caption site-footer__copyright">
+        © {{ 'now' | date: '%Y' }} {{ section.settings.copyright_text | default: shop.name }}
+      </p>
+    </div>
   </div>
+
+  {%- if section.settings.show_back_to_top -%}
+    {% render 'back-to-top' %}
+  {%- endif -%}
 </footer>
 
 {% schema %}
@@ -20,16 +206,121 @@
   "name": "Footer",
   "settings": [
     {
-      "type": "textarea",
-      "id": "text",
-      "label": "Text",
-      "default": "Thoughtfully made goods, shipped with care."
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "header",
+      "content": "Bottom bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_localization",
+      "label": "Show country/language selectors",
+      "default": true,
+      "info": "Only appears when your store has more than one country or language configured."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "Show payment icons",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social",
+      "label": "Show social links",
+      "default": true
     },
     {
       "type": "link_list",
-      "id": "menu",
-      "label": "Menu",
-      "default": "footer"
+      "id": "legal_menu",
+      "label": "Legal menu",
+      "info": "e.g. Privacy policy, Terms of service, Shipping policy"
+    },
+    {
+      "type": "text",
+      "id": "copyright_text",
+      "label": "Copyright text",
+      "info": "Defaults to your shop name. The year and © are added automatically."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_to_top",
+      "label": "Show back-to-top button",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Menu",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Shop" },
+        { "type": "link_list", "id": "menu", "label": "Menu", "default": "footer" }
+      ]
+    },
+    {
+      "type": "rich_text",
+      "name": "About text",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "About" },
+        { "type": "image_picker", "id": "logo", "label": "Logo" },
+        { "type": "richtext", "id": "content", "label": "Content" }
+      ]
+    },
+    {
+      "type": "newsletter",
+      "name": "Newsletter",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Stay in touch" }
+      ]
+    },
+    {
+      "type": "social",
+      "name": "Social links",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Follow us" }
+      ]
+    },
+    {
+      "type": "contact",
+      "name": "Contact info",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Visit us" }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    },
+    {
+      "type": "payment_icons",
+      "name": "Payment icons",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "We accept" }
+      ]
+    },
+    {
+      "type": "liquid",
+      "name": "Custom Liquid",
+      "settings": [
+        { "type": "liquid", "id": "liquid_code", "label": "Liquid code" }
+      ]
     }
   ]
 }

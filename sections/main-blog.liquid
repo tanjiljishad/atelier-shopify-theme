@@ -1,0 +1,98 @@
+{%- comment -%}
+  Blog index (spec §5.5 blog card + Theme Editor "card style, sidebar on/off,
+  author/date display"). Featured article + responsive grid, both built on
+  blog-card.liquid — no second card implementation. Tag filtering uses
+  Shopify's own `/blog-handle/tagged/tag-handle` URLs (real navigation, zero
+  JS, same philosophy as collection-filters.liquid's base form) rather than
+  an AJAX filter engine — a blog doesn't get the same instant-apply treatment
+  as collection filtering did in Milestone 6 because there's no multi-facet
+  combination to keep in sync, just a single tag switch.
+{%- endcomment -%}
+{% paginate blog.articles by section.settings.articles_per_page %}
+  <div class="container container--wide">
+    <div class="blog-index__header">
+      {% render 'breadcrumb', blog: blog %}
+      <h1 class="blog-index__title">{{ blog.title }}</h1>
+    </div>
+
+    {%- if blog.all_tags.size > 0 -%}
+      <nav class="blog-index__tags" aria-label="{{ 'blog.filter_by_tag' | t }}">
+        <a href="{{ blog.url }}" class="blog-index__tag{% if current_tags.size == 0 %} is-active{% endif %}">
+          {{ 'blog.all_posts' | t }}
+        </a>
+        {%- for tag in blog.all_tags -%}
+          <a
+            href="{{ blog.url }}/tagged/{{ tag | handle }}"
+            class="blog-index__tag{% if current_tags contains tag %} is-active{% endif %}"
+          >
+            {{ tag }}
+          </a>
+        {%- endfor -%}
+      </nav>
+    {%- endif -%}
+
+    {%- if blog.articles.size > 0 -%}
+      {%- assign articles = blog.articles -%}
+      {%- if section.settings.show_featured and paginate.current_page == 1 -%}
+        <div class="blog-index__featured">
+          {% render 'blog-card', article: articles.first, mode: 'featured', priority: true %}
+        </div>
+        {%- assign grid_articles = articles | slice: 1, articles.size -%}
+      {%- else -%}
+        {%- assign grid_articles = articles -%}
+      {%- endif -%}
+
+      {%- if grid_articles.size > 0 -%}
+        <div class="grid grid-cols-3" data-scroll-reveal>
+          {%- for article in grid_articles -%}
+            <div data-scroll-reveal-child>
+              {% render 'blog-card', article: article %}
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {% render 'pagination', paginate: paginate, style: section.settings.pagination_style %}
+    {%- else -%}
+      <div class="collection-empty-state">
+        {% render 'icon', name: 'message-circle', size: 48 %}
+        <h2 class="collection-empty-state__title">{{ 'blog.empty_title' | t }}</h2>
+        <p class="text-small">{{ 'blog.empty_message' | t }}</p>
+      </div>
+    {%- endif -%}
+  </div>
+{% endpaginate %}
+
+{% schema %}
+{
+  "name": "Blog pages",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_featured",
+      "label": "Show featured article",
+      "default": true,
+      "info": "Shows the most recent article in a larger, 2-column treatment on the first page."
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "Articles per page",
+      "min": 6,
+      "max": 24,
+      "step": 3,
+      "default": 12
+    },
+    {
+      "type": "select",
+      "id": "pagination_style",
+      "label": "Pagination style",
+      "options": [
+        { "value": "load_more", "label": "Load more button" },
+        { "value": "numbered", "label": "Numbered pages" }
+      ],
+      "default": "numbered"
+    }
+  ]
+}
+{% endschema %}

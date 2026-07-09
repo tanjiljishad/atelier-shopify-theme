@@ -1,0 +1,43 @@
+{%- comment -%}
+  Shared address form fields — the addresses page uses this identically for
+  both "add new address" (address: customer.new_address) and "edit existing"
+  (address: an entry from customer.addresses), so the field markup exists
+  once. Province is a plain text field rather than a country-dependent
+  dynamic select — Shopify accepts free-text province values, and a dynamic
+  province list needs the platform's own provinces dataset wired up via JS
+  that risks being subtly wrong without live testing against a real store;
+  flagged in CHANGELOG.md as a candidate refinement.
+
+  Accepts: address (required), form_id (required): unique id prefix so
+  multiple instances of this form (one per existing address) never collide.
+{%- endcomment -%}
+<div class="customer-form__row">
+  {% render 'field', id: form_id | append: '-FirstName', name: 'address[first_name]', label: 'customer.first_name' | t, value: address.first_name, autocomplete: 'given-name' %}
+  {% render 'field', id: form_id | append: '-LastName', name: 'address[last_name]', label: 'customer.last_name' | t, value: address.last_name, autocomplete: 'family-name' %}
+</div>
+
+{% render 'field', id: form_id | append: '-Company', name: 'address[company]', label: 'customer.company' | t, value: address.company, autocomplete: 'organization' %}
+{% render 'field', id: form_id | append: '-Address1', name: 'address[address1]', label: 'customer.address1' | t, value: address.address1, autocomplete: 'address-line1', required: true %}
+{% render 'field', id: form_id | append: '-Address2', name: 'address[address2]', label: 'customer.address2' | t, value: address.address2, autocomplete: 'address-line2' %}
+
+<div class="customer-form__row">
+  {% render 'field', id: form_id | append: '-City', name: 'address[city]', label: 'customer.city' | t, value: address.city, autocomplete: 'address-level2', required: true %}
+  {% render 'field', id: form_id | append: '-Province', name: 'address[province]', label: 'customer.province' | t, value: address.province, autocomplete: 'address-level1' %}
+</div>
+
+<div class="customer-form__row">
+  <div class="field">
+    <label class="field__label" for="{{ form_id }}-Country">{{ 'customer.country' | t }}</label>
+    <div class="field__control">
+      <select class="field__input field__input--select" id="{{ form_id }}-Country" name="address[country]" autocomplete="country">
+        {{ address.country_option_tags }}
+      </select>
+      {% render 'icon', name: 'chevron-down', size: 16, class: 'field__select-icon' %}
+    </div>
+  </div>
+  {% render 'field', id: form_id | append: '-Zip', name: 'address[zip]', label: 'customer.zip' | t, value: address.zip, autocomplete: 'postal-code' %}
+</div>
+
+{% render 'field', id: form_id | append: '-Phone', name: 'address[phone]', type: 'tel', label: 'customer.phone' | t, value: address.phone, autocomplete: 'tel' %}
+
+{% render 'checkbox', id: form_id | append: '-Default', name: 'address[default]', label: 'customer.set_default' | t, checked: address.default %}

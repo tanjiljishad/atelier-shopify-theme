@@ -99,7 +99,7 @@
     <button type="button" class="buy-box__action-button" data-compare-toggle data-product-id="{{ product.id }}" aria-pressed="false" aria-label="{{ 'products.product.compare_add' | t }}">
       {% render 'icon', name: 'git-compare', size: 18 %} <span>{{ 'products.product.compare_add' | t }}</span>
     </button>
-    {% render 'share-button', product: product %}
+    {% render 'share-button', title: product.title, url: product.url %}
   </div>
 
   {%- if settings.product_show_trust_badges -%}

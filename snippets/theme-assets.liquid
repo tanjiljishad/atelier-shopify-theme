@@ -1,0 +1,37 @@
+{%- comment -%}
+  Shared <head> asset loading — fonts, design tokens, theme.css, the
+  window.Atelier.settings bootstrap, theme.js, and custom CSS/head code.
+  Identical across every layout (theme.liquid, password.liquid, and any
+  future minimal layout like gift_card.liquid), so it lives in exactly one
+  place rather than getting copy-pasted and drifting between them.
+{%- endcomment -%}
+{%- render 'theme-fonts' -%}
+{%- render 'theme-tokens' -%}
+
+{{ 'theme.css' | asset_url | stylesheet_tag }}
+
+{%- if settings.custom_css != blank -%}
+  <style>
+    {{ settings.custom_css }}
+  </style>
+{%- endif -%}
+
+<script>
+  window.Atelier = window.Atelier || {};
+  window.Atelier.settings = {
+    animationsEnabled: {{ settings.animations_enabled | json }},
+    performanceMode: {{ settings.performance_mode | json }},
+    colorSchemeMode: {{ settings.color_scheme_mode | json }},
+    moneyFormat: {{ shop.money_format | json }},
+    cartUrl: {{ routes.cart_url | json }},
+    i18n: {
+      cartToastAdded: {{ 'cart.toast_added' | t | json }},
+      cartToastViewCart: {{ 'cart.view_cart' | t | json }}
+    }
+  };
+</script>
+<script src="{{ 'theme.js' | asset_url }}" type="module"></script>
+
+{%- if settings.custom_head_code != blank -%}
+  {{ settings.custom_head_code }}
+{%- endif -%}

@@ -19,6 +19,7 @@ import './header.js';
 import './mobile-nav.js';
 import './predictive-search.js';
 import './cart-drawer.js';
+import { initLoadingBar } from './loading-bar.js';
 
 document.documentElement.classList.remove('no-js');
 document.documentElement.classList.add('js');
@@ -59,6 +60,7 @@ window.Atelier = Object.assign(window.Atelier || {}, {
 });
 
 initScrollReveal();
+initLoadingBar();
 
 /**
  * Each of these is only fetched when its markup actually exists on the current
@@ -117,3 +119,21 @@ if (document.querySelector('[data-share-button]')) {
   import('./share-button.js').then(({ initShareButtons }) => initShareButtons());
 }
 if (document.querySelector('[data-cart-page-inner]')) import('./cart-page.js');
+if (document.querySelector('[data-gift-card-copy], [data-gift-card-print]')) {
+  import('./gift-card.js').then(({ initGiftCardPage }) => initGiftCardPage());
+}
+if (document.querySelector('[data-login-form], [data-password-toggle]')) {
+  import('./customer-forms.js').then(({ initCustomerForms }) => initCustomerForms());
+}
+if (document.querySelector('[data-back-to-top]')) {
+  import('./back-to-top.js').then(({ initBackToTop }) => initBackToTop());
+}
+if (document.querySelector('[data-cookie-banner]')) {
+  import('./cookie-banner.js').then(({ initCookieBanner }) => initCookieBanner());
+}
+if (document.querySelector('[data-age-gate]')) {
+  import('./age-verification.js').then(({ initAgeVerification }) => initAgeVerification());
+}
+if (document.querySelector('[data-email-popup]')) {
+  import('./email-popup.js').then(({ initEmailPopup }) => initEmailPopup());
+}

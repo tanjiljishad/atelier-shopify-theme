@@ -18,6 +18,7 @@ import './drawer.js';
 import './header.js';
 import './mobile-nav.js';
 import './predictive-search.js';
+import './cart-drawer.js';
 
 document.documentElement.classList.remove('no-js');
 document.documentElement.classList.add('js');
@@ -115,3 +116,4 @@ if (document.querySelector('[data-recently-viewed]')) {
 if (document.querySelector('[data-share-button]')) {
   import('./share-button.js').then(({ initShareButtons }) => initShareButtons());
 }
+if (document.querySelector('[data-cart-page-inner]')) import('./cart-page.js');

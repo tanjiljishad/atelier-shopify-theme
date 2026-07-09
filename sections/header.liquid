@@ -32,6 +32,15 @@
   assign label_compare = 'general.compare' | t
   assign label_cart = 'general.cart' | t
 
+  # The cart icon always keeps its real routes.cart_url href (zero-JS
+  # fallback + works if the drawer is disabled); drawer_target is only added
+  # when the drawer is enabled and we're not already on the cart page itself
+  # (opening a drawer over its own destination page is redundant).
+  assign cart_drawer_target = blank
+  if settings.cart_type == 'drawer' and template != 'cart'
+    assign cart_drawer_target = 'CartDrawer'
+  endif
+
   assign header_classes = 'site-header color-scheme-' | append: section.settings.color_scheme
   if is_transparent
     assign header_classes = header_classes | append: ' site-header--transparent'
@@ -69,7 +78,7 @@
       {% render 'header-action', icon: 'user', label: label_account, href: account_href %}
       {% render 'header-action', icon: 'heart', label: label_wishlist, href: blank, count: 0, id: 'WishlistAction' %}
       {% render 'header-action', icon: 'git-compare', label: label_compare, href: blank, count: 0, id: 'CompareAction' %}
-      {% render 'header-action', icon: 'shopping-bag', label: label_cart, href: routes.cart_url, count: cart.item_count, id: 'CartLink' %}
+      {% render 'header-action', icon: 'shopping-bag', label: label_cart, href: routes.cart_url, drawer_target: cart_drawer_target, count: cart.item_count, id: 'CartLink' %}
     </div>
   </div>
 </site-header>

@@ -101,6 +101,33 @@
       }
     }
   },
+  "cart": {
+    "title": "Cart",
+    "subtotal": "Subtotal",
+    "tax_note": "Taxes and shipping calculated at checkout",
+    "checkout": "Checkout",
+    "continue_shopping": "Continue shopping",
+    "view_cart": "View cart",
+    "update": "Update cart",
+    "empty_title": "Your cart is empty",
+    "empty_message": "Looks like you haven't added anything yet.",
+    "add_note": "Add a note",
+    "note_label": "Order note",
+    "savings": "You save {{ amount }}",
+    "quantity_label": "Quantity — {{ title }}",
+    "remove": "Remove {{ title }}",
+    "gift_wrap": "Gift wrap (+$5)",
+    "upsell_heading": "Pairs well with",
+    "add_discount_code": "Add discount code",
+    "discount_code_placeholder": "Discount code",
+    "apply": "Apply",
+    "shipping_estimate": "Estimated delivery in 3–5 business days",
+    "a11y_item_updated": "Cart updated",
+    "a11y_item_removed": "Item removed from cart",
+    "free_shipping_met": "You've unlocked free shipping",
+    "free_shipping_remaining": "{{ amount }} away from free shipping",
+    "free_shipping_progress_label": "Progress toward free shipping"
+  },
   "collections": {
     "product_count": "products",
     "filters": {

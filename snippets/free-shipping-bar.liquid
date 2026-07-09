@@ -1,0 +1,50 @@
+{%- comment -%}
+  Free shipping progress (spec §7: "hairline track, ink fill, '$22 away from
+  free shipping' — turns Success with a check when reached"). A real,
+  accessible <progress>-pattern meter (role="progressbar" with numeric ARIA,
+  not just a colored div) computed entirely server-side from cart.total_price.
+  Never recalculated in JS: this snippet lives inside the drawer/page's AJAX
+  swap boundary (see cart-drawer.liquid, main-cart.liquid), so every cart
+  change already re-renders it fresh via Shopify's own `sections` param —
+  one place that knows the free-shipping math, not two.
+
+  Gated on settings.cart_free_shipping_enabled + a merchant-set threshold —
+  reads cart.total_price directly rather than checking real shipping rates
+  (spec's own words: "messaging," not a shipping-rate calculator; the
+  storefront has no access to computed rates before the shipping-info step
+  anyway).
+{%- endcomment -%}
+{%- if settings.cart_free_shipping_enabled -%}
+  {%- liquid
+    assign threshold = settings.cart_free_shipping_threshold | times: 100
+    assign remaining = threshold | minus: cart.total_price
+    assign progress = cart.total_price | times: 100.0 | divided_by: threshold | round
+    if progress > 100
+      assign progress = 100
+    endif
+    assign is_met = false
+    if remaining <= 0
+      assign is_met = true
+    endif
+    assign remaining_money = remaining | money
+  -%}
+  <div class="free-shipping-bar{% if is_met %} free-shipping-bar--met{% endif %}">
+    <p class="free-shipping-bar__message">
+      {%- if is_met -%}
+        {% render 'icon', name: 'check', size: 14 %} {{ 'cart.free_shipping_met' | t }}
+      {%- else -%}
+        {{ 'cart.free_shipping_remaining' | t: amount: remaining_money }}
+      {%- endif -%}
+    </p>
+    <div
+      class="free-shipping-bar__track"
+      role="progressbar"
+      aria-valuenow="{{ progress }}"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label="{{ 'cart.free_shipping_progress_label' | t }}"
+    >
+      <div class="free-shipping-bar__fill" style="width: {{ progress }}%;"></div>
+    </div>
+  </div>
+{%- endif -%}

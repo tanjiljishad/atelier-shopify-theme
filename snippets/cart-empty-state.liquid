@@ -1,0 +1,14 @@
+{%- comment -%}
+  Empty cart (spec §5.6 "beautiful empties" pattern). Reuses
+  collection-empty-state.liquid's exact CSS treatment (icon + H2 + line +
+  primary CTA) rather than a new visual language for "this container has
+  nothing in it" — the class name says "collection" but the properties are
+  generic enough that inventing a near-identical `.cart-empty-state` block
+  would just be the same ~10 lines twice.
+{%- endcomment -%}
+<div class="collection-empty-state">
+  {% render 'icon', name: 'shopping-bag', size: 48 %}
+  <h2 class="collection-empty-state__title">{{ 'cart.empty_title' | t }}</h2>
+  <p class="text-small">{{ 'cart.empty_message' | t }}</p>
+  <a href="{{ routes.all_products_collection_url }}" class="btn btn--primary">{{ 'cart.continue_shopping' | t }}</a>
+</div>

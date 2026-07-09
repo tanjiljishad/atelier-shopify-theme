@@ -1,0 +1,19 @@
+{%- comment -%}
+  Gift wrap (spec §7: "gift-wrap checkbox (+$5)"). Explicitly a placeholder —
+  same precedent as wishlist/compare in Milestone 3: a real, fully wired
+  toggle with no backend behind it yet, since actually adding a gift-wrap
+  line item requires a specific gift-wrap product variant that only exists
+  once a merchant creates one (a generic theme can't assume its id). Reuses
+  switch.liquid exactly as spec names it ("Switch — used for... gift wrap"),
+  not a bespoke checkbox.
+
+  Wiring this up for real, once a merchant has a gift-wrap product, is a
+  one-line change: assets/cart-utils.js's addToCart already exists (built in
+  Milestone 7) and this switch's `change` event is the only thing that would
+  need a listener added.
+{%- endcomment -%}
+{%- if settings.cart_show_gift_wrap -%}
+  <div class="cart-gift-wrap">
+    {% render 'switch', id: 'CartGiftWrap', name: 'gift_wrap', label: 'cart.gift_wrap' | t %}
+  </div>
+{%- endif -%}

@@ -1,0 +1,95 @@
+{%- comment -%}
+  Cart drawer (spec §7): right drawer, 440px, free-shipping progress, line
+  items, upsell strip, footer (subtotal/tax note/checkout/continue shopping).
+  Built entirely on primitives from earlier milestones — <theme-drawer> (no
+  subclassing needed, same as search-drawer.liquid), cart-line-item.liquid,
+  free-shipping-bar.liquid, cart-upsell.liquid, quantity-input, price, icon.
+
+  Lives in header-group.json (always present, hidden, zero layout cost until
+  opened — same contract as every other drawer) so it's reachable from any
+  page and independently fetchable by section id.
+
+  Refresh contract for assets/cart-drawer.js: everything that changes when
+  the cart changes (item count, line items, free-shipping progress, subtotal,
+  upsell) sits inside the single [data-cart-drawer-inner] wrapper — an AJAX
+  cart request asks Shopify to re-render *this exact section* (the native
+  `sections` param on /cart/change.js etc.) and the JS swaps just that one
+  wrapper, the same "replace an inner container, never the JS-controlling
+  outer element" discipline collection-filters.js already established. The
+  <theme-drawer> element and its .drawer__panel are never touched, so its
+  live open state/focus trap survive every refresh untouched — only the
+  close button inside the swapped content needs re-binding after a swap
+  (ThemeDrawer's own connectedCallback binding a stale, now-detached button
+  otherwise — the exact bug class Milestone 6 caught with a rebuilt sort
+  select).
+{%- endcomment -%}
+{%- liquid
+  assign auto_open = false
+  if settings.cart_type == 'drawer' and template != 'cart'
+    assign auto_open = true
+  endif
+-%}
+<theme-drawer
+  id="CartDrawer"
+  side="right"
+  class="cart-drawer"
+  hidden
+  data-cart-type="{{ settings.cart_type }}"
+  {% if auto_open %}data-auto-open{% endif %}
+  style="--cart-drawer-width: {{ settings.cart_drawer_width }}px;"
+>
+  <div class="drawer__scrim" data-drawer-dismiss></div>
+  <div class="drawer__panel cart-drawer__panel" role="dialog" aria-modal="true" aria-label="{{ 'cart.title' | t }}">
+    <div class="cart-drawer__inner" data-cart-drawer-inner>
+      <script type="application/json" data-cart-drawer-i18n>
+        {
+          "itemUpdated": {{ 'cart.a11y_item_updated' | t | json }},
+          "itemRemoved": {{ 'cart.a11y_item_removed' | t | json }}
+        }
+      </script>
+
+      <div class="cart-drawer__header">
+        <h2 class="cart-drawer__heading">{{ 'cart.title' | t }} · {{ cart.item_count }}</h2>
+        <button type="button" class="btn-icon" data-drawer-close aria-label="{{ 'general.close' | t }}">
+          {% render 'icon', name: 'plus', class: 'icon--rotate-45' %}
+        </button>
+      </div>
+
+      {% render 'free-shipping-bar' %}
+
+      {%- if cart.item_count > 0 -%}
+        {%- form 'cart', cart, class: 'cart-drawer__form' -%}
+          <div class="cart-drawer__items">
+            {%- for item in cart.items -%}
+              {% render 'cart-line-item', item: item, compact: true %}
+            {%- endfor -%}
+          </div>
+
+          {% render 'cart-note' %}
+          {% render 'gift-wrap-field' %}
+        {%- endform -%}
+
+        {% render 'cart-upsell' %}
+
+        <div class="cart-drawer__footer">
+          <div class="cart-drawer__subtotal-row">
+            <span>{{ 'cart.subtotal' | t }}</span>
+            <span>{{ cart.total_price | money }}</span>
+          </div>
+          <p class="text-small cart-drawer__tax-note">{{ 'cart.tax_note' | t }}</p>
+          <a href="{{ routes.checkout_url }}" class="btn btn--primary btn--full">{{ 'cart.checkout' | t }}</a>
+          <a href="{{ routes.cart_url }}" class="btn btn--ghost btn--full">{{ 'cart.view_cart' | t }}</a>
+        </div>
+      {%- else -%}
+        {% render 'cart-empty-state' %}
+      {%- endif -%}
+    </div>
+  </div>
+</theme-drawer>
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "settings": []
+}
+{% endschema %}

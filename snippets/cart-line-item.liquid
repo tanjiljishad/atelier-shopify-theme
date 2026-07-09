@@ -1,0 +1,64 @@
+{%- comment -%}
+  Cart line item row (spec §7 cart drawer "88px image, title, variant Caption,
+  qty stepper, price, remove"; cart page adds compare-at/savings/inventory).
+  One snippet for both surfaces — reuses responsive-image, price,
+  inventory-indicator, quantity-input, icon exactly as built in earlier
+  milestones, so a line item looks and behaves identically in the drawer and
+  on the page.
+
+  The quantity input's real `name="updates[{{ item.key }}]"` and the whole
+  line's real `data-cart-remove` button are both inside a genuine
+  `{% form 'cart' %}` (rendered by the caller) — this markup works correctly
+  with zero JS (native cart update on submit); assets/cart-utils.js's shared
+  AJAX layer only intercepts to avoid the full-page round trip.
+
+  Accepts:
+  - item (required): a cart.items entry
+  - compact (bool, default false): drawer sizing (88px image, no inventory
+    line) vs. the fuller cart-page treatment.
+{%- endcomment -%}
+{%- liquid
+  assign image_size = '120px'
+  if compact
+    assign image_size = '88px'
+  endif
+  assign line_compare_at = item.variant.compare_at_price | times: item.quantity
+-%}
+<div class="cart-line-item{% if compact %} cart-line-item--compact{% endif %}" data-cart-line-item data-line-key="{{ item.key }}">
+  <a href="{{ item.url }}" class="cart-line-item__media aspect-ratio" style="aspect-ratio: 1/1;" tabindex="-1" aria-hidden="true">
+    {% render 'responsive-image', image: item.image, sizes: image_size, wrap: false %}
+  </a>
+
+  <div class="cart-line-item__info">
+    <a href="{{ item.url }}" class="cart-line-item__title">{{ item.product.title }}</a>
+    {%- unless item.variant.title == 'Default Title' -%}
+      <span class="caption cart-line-item__variant">{{ item.variant.title }}</span>
+    {%- endunless -%}
+
+    {%- unless compact -%}
+      {% render 'inventory-indicator', variant: item.variant %}
+    {%- endunless -%}
+
+    <div class="cart-line-item__price-row">
+      {% render 'price', price: item.final_line_price, compare_at_price: line_compare_at, size: 'card' %}
+    </div>
+
+    {%- if line_compare_at > item.final_line_price -%}
+      {%- assign line_savings = line_compare_at | minus: item.final_line_price | money -%}
+      <span class="cart-line-item__savings text-small">{{ 'cart.savings' | t: amount: line_savings }}</span>
+    {%- endif -%}
+  </div>
+
+  <div class="cart-line-item__actions">
+    {% render 'quantity-input',
+      id: 'CartQuantity-' | append: item.key,
+      name: 'updates[' | append: item.key | append: ']',
+      value: item.quantity,
+      min: 0,
+      label: 'cart.quantity_label' | t: title: item.product.title
+    %}
+    <button type="button" class="cart-line-item__remove" data-cart-remove aria-label="{{ 'cart.remove' | t: title: item.product.title }}">
+      {% render 'icon', name: 'x', size: 16 %}
+    </button>
+  </div>
+</div>

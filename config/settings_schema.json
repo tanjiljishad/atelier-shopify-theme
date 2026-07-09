@@ -486,6 +486,104 @@
     ]
   },
   {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart type",
+        "options": [
+          { "value": "drawer", "label": "Drawer" },
+          { "value": "page", "label": "Page (no drawer)" }
+        ],
+        "default": "drawer",
+        "info": "The cart icon always links to the real cart page too — the drawer is a fast-access layer on top, not a replacement for it."
+      },
+      {
+        "type": "range",
+        "id": "cart_drawer_width",
+        "label": "Drawer width",
+        "min": 360,
+        "max": 560,
+        "step": 10,
+        "unit": "px",
+        "default": 440
+      },
+      {
+        "type": "header",
+        "content": "Free shipping bar"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_free_shipping_enabled",
+        "label": "Enable free shipping progress bar",
+        "default": true
+      },
+      {
+        "type": "number",
+        "id": "cart_free_shipping_threshold",
+        "label": "Free shipping threshold",
+        "default": 75,
+        "info": "In your store's currency, e.g. 75 for $75."
+      },
+      {
+        "type": "header",
+        "content": "Cross-sell & recommendations"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_upsell",
+        "label": "Show \"Pairs well with\" in the cart drawer",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "cart_cross_sell_title",
+        "label": "Cart page recommendations heading",
+        "default": "You may also like"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_recently_viewed",
+        "label": "Show recently viewed on cart page",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Cart fields"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_note",
+        "label": "Allow order notes",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_gift_wrap",
+        "label": "Show gift wrap option",
+        "default": false,
+        "info": "Placeholder UI only — connect it to a real gift-wrap product to make it functional."
+      },
+      {
+        "type": "header",
+        "content": "Cart page"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_shipping_estimate",
+        "label": "Show shipping estimate message",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_payment_icons",
+        "label": "Show accepted payment icons",
+        "default": true
+      }
+    ]
+  },
+  {
     "name": "Animations",
     "settings": [
       {

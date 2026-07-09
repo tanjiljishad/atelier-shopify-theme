@@ -13,7 +13,12 @@
   - id: optional element id (used by JS to target this specific action, e.g.
     "CartLink" for the AJAX-ready cart count hook).
   - drawer_target: optional — sets data-drawer-open="{{ drawer_target }}"
-    (see assets/drawer.js) so this button opens that <theme-drawer>.
+    (see assets/drawer.js) so this button opens that <theme-drawer>. Combine
+    with `href` (e.g. the cart icon: href routes.cart_url + drawer_target
+    "CartDrawer") to get a real, working link as the zero-JS/JS-failure
+    fallback — <theme-drawer>'s own open-trigger listener already calls
+    event.preventDefault() on any element carrying this attribute regardless
+    of tag, so no extra JS is needed to support both at once.
   - count: optional integer — renders a visible count bubble. Pass 0 to
     render the bubble hidden (via .is-hidden) rather than omitting it, so
     JS only ever has to toggle a class, never create/remove the element.

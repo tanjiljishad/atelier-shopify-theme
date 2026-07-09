@@ -1,0 +1,15 @@
+{%- comment -%}
+  Cart note — collapsed behind a link by default, same pattern spec gives
+  the cart page's discount field ("collapsed behind 'Add discount code'
+  link") and the same native <details> disclosure Milestone 7's size-guide
+  already established (zero JS required to open/close). Uses field.liquid's
+  existing textarea type rather than a bespoke textarea.
+{%- endcomment -%}
+{%- if settings.cart_show_note -%}
+  <details class="cart-note">
+    <summary class="cart-note__trigger">{{ 'cart.add_note' | t }}</summary>
+    <div class="cart-note__panel">
+      {% render 'field', id: 'CartNote', type: 'textarea', name: 'note', label: 'cart.note_label' | t, value: cart.note, rows: 3 %}
+    </div>
+  </details>
+{%- endif -%}

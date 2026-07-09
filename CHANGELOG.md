@@ -3,6 +3,156 @@
 All notable changes to the Atelier theme are documented here, one entry per
 build milestone. Dates reflect when the milestone was completed.
 
+## Milestone 8 — Premium Cart Experience
+
+**New components**
+Cart drawer (right-side, merchant-configurable width, free-shipping
+progress, line items, "Pairs well with" upsell, subtotal/tax note/checkout/
+view-cart footer, empty state), cart page (2-column: items + sticky order-
+summary card with discount-to-checkout link, gift-wrap placeholder, shipping
+estimate messaging, tax note, grayscale payment icons, trust badges,
+recommendations, recently viewed), shared cart line item (drawer + page,
+same row, same primitives), free-shipping progress bar (accessible
+`role="progressbar"`), cart note (collapsed disclosure), live cart badge in
+the header (already built in Milestone 3, now genuinely driven by every
+add/change/remove this milestone performs).
+
+**Files created**
+`sections/cart-drawer.liquid`; `snippets/cart-line-item.liquid`,
+`free-shipping-bar.liquid`, `cart-upsell.liquid`, `cart-note.liquid`,
+`cart-empty-state.liquid`, `gift-wrap-field.liquid`; `assets/cart-utils.js`,
+`cart-drawer.js`, `cart-page.js`.
+
+**Files modified**
+`sections/main-cart.liquid` (full rebuild), `sections/header.liquid` (cart
+icon now also carries `data-drawer-open` when the drawer is enabled),
+`sections/header-group.json` (+cart-drawer section, always present),
+`snippets/header-action.liquid` (documented — no functional change needed;
+`href` + `drawer_target` already worked together), `snippets/product-
+recommendations.liquid` (+optional `heading`/`intent` params so the cart
+page can pass its own merchant-configurable cross-sell title and
+`intent: 'complementary'` without this snippet growing cart-specific
+knowledge), `snippets/recently-viewed.liquid` + `assets/recently-viewed.js`
+(+"no product to record" mode for the cart page, spec: "appears on PDP +
+cart page only"), `assets/theme.js` (cart-drawer.js added to the eager
+header-group imports; cart-page.js dynamically gated), `config/
+settings_schema.json` + `settings_data.json` (+"Cart" settings group),
+`locales/en.default.json` (+~25 strings), `assets/theme.css` (+~450 lines:
+sections 50–55).
+
+**Architectural decisions**
+- **Every cart mutation uses Shopify's native `sections` parameter** on
+  `/cart/change.js` / `/cart/update.js` — one request both performs the
+  mutation and returns fresh server-rendered HTML for the drawer/page
+  section, so line-item markup, prices, and free-shipping math are never
+  reimplemented in JS. Same fetch-and-extract-by-section-id philosophy as
+  `predictive-search.js`/`collection-filters.js`, applied to the cart API
+  instead of the generic Section Rendering endpoint — the Shopify-native
+  choice over hand-rolling cart state in JavaScript.
+- **`CartSurfaceController` (assets/cart-utils.js)** is the one place that
+  knows how to debounce a quantity change, serialize requests, animate a
+  removal, save a note, and swap in fresh content — `cart-drawer.js` and
+  `cart-page.js` each instantiate it against their own container/section id
+  rather than duplicating ~150 lines of "talk to the cart API safely"
+  twice, directly per instruction #4.
+- **Every cart mutation is serialized through one request queue**, not
+  fired independently. Each response is a *full* re-render of the surface;
+  if two requests were ever in flight at once, whichever response landed
+  second would silently overwrite whatever the first had just applied, even
+  with per-request `AbortController` cancellation (which only protects
+  against a *stale* response, not an *out-of-order* one from a different
+  line). Serializing removes the race entirely. Per-line debouncing (400ms)
+  keeps a long-press's rapid repeat down to one queued request per line.
+- **The drawer never replaces itself, only its inner content.** Every
+  listener is delegated from the stable `.drawer__panel` and only
+  `[data-cart-drawer-inner]` is swapped after a mutation — the same
+  "replace an inner container, never the JS-controlling outer element"
+  discipline `collection-filters.js` established in Milestone 6, applied
+  here from the start rather than discovered via a bug.
+- **`cart:updated` is the integration point for surfaces that don't know
+  the drawer exists** — the upsell strip's `<quick-add-button>` (Milestone
+  4), the PDP buy box (Milestone 7), and complete-the-look's batch add each
+  do their own independent `/cart/add.js` call with zero knowledge of any
+  drawer. Rather than teach three existing, working components about a
+  drawer that didn't exist when they were built, `cart-drawer.js`/
+  `cart-page.js` listen for the `cart:updated` event they already all
+  dispatch: any occurrence not tagged with this surface's own section id as
+  its source means the content is stale, so it force-refreshes and (drawer
+  only, and only when enabled and not already on the cart page) opens —
+  exactly the "cart drawer slides open" ATC feedback flagged as a
+  Milestone 7 follow-up, delivered with one new listener and zero changes
+  to any of those three files.
+- **Discount codes redirect to checkout with `?discount=CODE`**, via a real
+  `method="get"` form — Shopify's storefront has no API to apply a code to
+  the cart itself pre-checkout, so a field that tried to would either be
+  fake or need a private/app API this theme can't assume exists. This is
+  the correct Shopify-native behavior, not a limitation: the code still
+  gets applied, just at the point in the flow where Shopify actually
+  validates codes.
+- **Shipping estimator downgraded to messaging.** The PDF's cart-page text
+  describes a full country/zip → rates calculator; this milestone's own
+  brief already downgrades that to "shipping estimate messaging," which is
+  what's built (same static-line pattern as the PDP buy box). A real rate
+  table needs the async shipping-rates API and genuine shipping-zone data
+  that don't exist in a generic theme — showing a wrong computed rate is a
+  worse outcome than a general estimate. Flagged below as a Milestone 9
+  candidate for a store that wants to invest in it.
+- **Gift wrap stays an explicit placeholder**, same precedent as wishlist/
+  compare in Milestone 3: a real, fully styled switch with no backend
+  behind it, since adding a real gift-wrap line item needs a specific
+  product only a merchant can create. Wiring it for real later is a
+  one-line change (the switch's `change` event is the only thing missing).
+- **No cart-specific animation toggle**, despite it being one of the
+  brief's example settings — `settings.animations_enabled` (global,
+  Milestone 1) already gates every reveal/transition sitewide; adding a
+  second, cart-scoped toggle would be exactly the kind of duplicate setting
+  instruction #4 warns against. Every cart transition (drawer slide,
+  removal collapse) already reads reduced-motion/performance-mode through
+  the shared `motion.js` primitives, same as everywhere else in the theme.
+
+**Bug fixes (caught before shipping)**
+Two separate `{% liquid %}...{% endliquid %}` mistakes (`cart-line-item.liquid`,
+plus the same error pattern already fixed once in `buy-box.liquid` during
+Milestone 7 — `liquid` is not a paired block tag) broke both files outright;
+removed. A `postCart` call was written expecting per-request
+`AbortController` cancellation to fully solve the "rapid clicks" race
+condition; on review this only protects a *stale* response for the *same*
+line, not two *different* lines' responses landing out of order and
+overwriting each other — replaced with the serialized-queue design
+described above before it ever shipped. `cart-page.js`'s first draft passed
+the *same* element as both the stable event-delegation root and the
+swappable content target — since `CartSurfaceController.swap()` looks for
+the target *inside* the container, this would have silently failed to find
+anything to replace on every single cart-page update; fixed by delegating
+from the swap target's stable parent instead. `assets/cart-drawer.js`
+referenced `window.Atelier.settings.cartRemovedMessage`/`cartUpdatedMessage`
+for its `aria-live` announcements — neither was ever actually added to that
+global object, which would have announced the literal string "undefined"
+to screen readers; replaced with a small per-section i18n JSON blob, same
+pattern as `variant-picker.liquid`'s (Milestone 7). Several stray unused
+`data-*` hooks (`data-cart-items`, `data-cart-drawer-count`,
+`data-cart-subtotal` ×2, four attributes on the free-shipping bar) were
+caught on self-review and removed — this milestone's full-content-swap
+architecture never needed surgical per-element targeting, so they were
+dead from the moment they were written.
+
+**Known follow-ups for Milestone 9**
+Cart-upsell's `{% recommendations %}` call evaluates on *every* page load
+once a visitor has anything in their cart (it's rendered inline in
+`cart-drawer.liquid`, which is always present via `header-group.json`) —
+bounded to sessions with a non-empty cart, but if that server-render cost
+ever proves measurable, making it async-loaded only on drawer-open (same
+pattern as Milestone 7's PDP recommendations) is the fix. The shipping
+estimator is messaging only, not a real country/zip → rate calculator (see
+architectural decisions above) — a candidate if a store specifically wants
+computed rates pre-checkout. Gift wrap is a real, styled, inert placeholder
+with no product behind it. None of this milestone's AJAX cart paths have
+been checked against a live store with real shipping zones, tax settings,
+or an actual gift-wrap product configured — all built strictly to Shopify's
+documented Cart API contract, untestable further from a static QA preview.
+
+---
+
 ## Milestone 7 — Premium Product Experience
 
 **New components**

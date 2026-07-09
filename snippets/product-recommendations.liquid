@@ -7,14 +7,27 @@
   engine, nothing custom to maintain, and it never blocks/delays the PDP's
   own first paint (spec's LCP requirement) since it loads after.
 
-  Accepts: product (required).
+  Accepts:
+  - product (required)
+  - heading: optional override for the default "You may also like" — the
+    cart page passes its own merchant-configurable cross-sell title here
+    rather than this snippet growing cart-specific knowledge.
+  - intent: 'related' (default, PDP) | 'complementary' (cart cross-sell) —
+    passed straight through to Shopify's recommendation engine.
 {%- endcomment -%}
 {%- if settings.product_show_recommendations -%}
+  {%- liquid
+    assign recommendations_heading = heading
+    if recommendations_heading == blank
+      assign recommendations_heading = 'products.product.recommendations_heading' | t
+    endif
+    assign recommendations_intent = intent | default: 'related'
+  -%}
   <section class="section section--rhythm">
-    {% render 'section-heading', heading: 'products.product.recommendations_heading' | t, align: 'left' %}
+    {% render 'section-heading', heading: recommendations_heading, align: 'left' %}
     <product-recommendations
       class="product-recommendations"
-      data-url="{{ routes.product_recommendations_url }}?section_id=related-products&product_id={{ product.id }}&limit=4&intent=related"
+      data-url="{{ routes.product_recommendations_url }}?section_id=related-products&product_id={{ product.id }}&limit=4&intent={{ recommendations_intent }}"
     >
       <div class="grid grid-cols-4">
         {%- for i in (1..4) -%}

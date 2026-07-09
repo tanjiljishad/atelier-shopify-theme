@@ -12,24 +12,36 @@
   at the cost of a stale price/title if a merchant changes either later. A
   reasonable trade for a below-the-fold, non-transactional module.
 
-  Accepts: product (required).
+  Accepts: product (optional) — when given (a PDP), this view is recorded
+  into the stored list; omit it (the cart page) to render existing entries
+  only, same "record vs. just display" split assets/recently-viewed.js reads
+  from the JSON blob's presence/handle rather than two separate templates.
 {%- endcomment -%}
 <div class="recently-viewed" data-recently-viewed hidden>
-  <script type="application/json" data-recently-viewed-current>
-    {
-      "handle": {{ product.handle | json }},
-      "title": {{ product.title | json }},
-      "url": {{ product.url | json }},
-      "image": {{ product.featured_image | image_url: width: 400 | json }},
-      "price": {{ product.price | json }},
-      "compareAtPrice": {{ product.compare_at_price | json }},
-      "available": {{ product.available | json }},
-      "i18n": {
+  {%- if product -%}
+    <script type="application/json" data-recently-viewed-current>
+      {
+        "handle": {{ product.handle | json }},
+        "title": {{ product.title | json }},
+        "url": {{ product.url | json }},
+        "image": {{ product.featured_image | image_url: width: 400 | json }},
+        "price": {{ product.price | json }},
+        "compareAtPrice": {{ product.compare_at_price | json }},
+        "available": {{ product.available | json }},
+        "i18n": {
+          "salePrice": {{ 'products.product.price.sale_price' | t | json }},
+          "regularPrice": {{ 'products.product.price.regular_price' | t | json }}
+        }
+      }
+    </script>
+  {%- else -%}
+    <script type="application/json" data-recently-viewed-i18n>
+      {
         "salePrice": {{ 'products.product.price.sale_price' | t | json }},
         "regularPrice": {{ 'products.product.price.regular_price' | t | json }}
       }
-    }
-  </script>
+    </script>
+  {%- endif -%}
   <h2 class="recently-viewed__title text-h4">{{ 'products.product.recently_viewed_heading' | t }}</h2>
   <div class="grid grid-cols-4" data-recently-viewed-grid></div>
 </div>

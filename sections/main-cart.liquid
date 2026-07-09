@@ -1,38 +1,124 @@
-<section class="section">
-  <div class="container">
-    <h1>{{ 'general.cart' | t }}</h1>
+{%- comment -%}
+  Cart page (spec §7): 2-column — items left, sticky order-summary card
+  right. Shares cart-line-item.liquid, free-shipping-bar.liquid,
+  cart-note.liquid, gift-wrap-field.liquid, cart-empty-state.liquid verbatim
+  with the drawer (sections/cart-drawer.liquid) — same rows, same free-
+  shipping messaging, same placeholders, so the two surfaces never drift.
 
-    {% if cart.empty? %}
-      <p>Your cart is empty.</p>
-      <a class="btn btn--primary" href="{{ routes.all_products_collection_url }}">Continue shopping</a>
-    {% else %}
-      <form action="{{ routes.cart_url }}" method="post">
-        <div class="cart-items">
-          {% for item in cart.items %}
-            <div class="cart-item">
-              <a href="{{ item.url }}">
-                {% if item.image %}
-                  {{ item.image | image_url: width: 240 | image_tag: widths: '120, 180, 240', alt: item.image.alt }}
-                {% endif %}
-              </a>
-              <div>
-                <a href="{{ item.url }}">{{ item.product.title }}</a>
-                <p>{{ item.final_line_price | money }}</p>
-                <input type="number" name="updates[]" value="{{ item.quantity }}" min="0">
+  Only [data-cart-page-inner] (items + order summary — the parts that
+  actually change on a quantity/note update) is inside the AJAX swap
+  boundary; recommendations and recently-viewed are heavier, don't change
+  when a line quantity does, and stay outside it so they're never
+  needlessly re-fetched/re-painted on every cart edit.
+
+  Discount codes: Shopify's storefront has no API for applying a code to
+  the cart itself pre-checkout — codes are validated at checkout. The
+  "discount field" spec shows on the cart page is therefore a real, working
+  link to checkout with the code pre-filled (?discount=CODE), not a cart
+  mutation — the correct Shopify-native behavior for this, not a limitation
+  of this theme.
+
+  Shipping estimator: spec's PDF text describes a full country/zip → rates
+  calculator; this milestone's own brief downgrades that to "shipping
+  estimate messaging," which is what's built here (same static-line pattern
+  as the PDP buy box) — a computed rate table needs the async shipping-rates
+  API and real shipping zone data neither exists nor is safely guessable in
+  a generic theme; showing a wrong computed rate is a worse outcome than a
+  general estimate. Flagged in CHANGELOG.md as a Milestone 9 candidate.
+{%- endcomment -%}
+<div class="container container--wide">
+  <h1 class="cart-page__title">{{ 'cart.title' | t }}</h1>
+</div>
+
+<section class="section section--rhythm">
+  <div class="container container--wide">
+    {%- if cart.item_count > 0 -%}
+      <div class="cart-page__layout" data-cart-page-inner data-section-id="{{ section.id }}">
+        <script type="application/json" data-cart-page-i18n>
+          {
+            "itemUpdated": {{ 'cart.a11y_item_updated' | t | json }},
+            "itemRemoved": {{ 'cart.a11y_item_removed' | t | json }}
+          }
+        </script>
+
+        {%- form 'cart', cart, class: 'cart-page__items' -%}
+          <div class="cart-page__items-list">
+            {%- for item in cart.items -%}
+              {% render 'cart-line-item', item: item %}
+            {%- endfor -%}
+          </div>
+
+          {% render 'cart-note' %}
+          {% render 'gift-wrap-field' %}
+
+          <noscript>
+            <button type="submit" name="update" class="btn btn--outline">{{ 'cart.update' | t }}</button>
+          </noscript>
+        {%- endform -%}
+
+        <div class="cart-page__summary">
+          {% render 'free-shipping-bar' %}
+
+          <div class="cart-page__summary-row">
+            <span>{{ 'cart.subtotal' | t }}</span>
+            <span>{{ cart.total_price | money }}</span>
+          </div>
+
+          {%- comment -%}
+            Real GET form: submitting it navigates the browser straight to
+            "{{ routes.checkout_url }}?discount=CODE" natively, no JS
+            required — Shopify validates/applies the code at checkout, the
+            only point in the flow where a code can actually be applied.
+          {%- endcomment -%}
+          <details class="cart-discount">
+            <summary class="cart-discount__trigger">{{ 'cart.add_discount_code' | t }}</summary>
+            <form action="{{ routes.checkout_url }}" method="get" class="cart-discount__form">
+              <div class="field__control">
+                <input type="text" name="discount" class="field__input" placeholder="{{ 'cart.discount_code_placeholder' | t }}" aria-label="{{ 'cart.discount_code_placeholder' | t }}">
               </div>
-            </div>
-          {% endfor %}
-        </div>
+              <button type="submit" class="btn btn--outline">{{ 'cart.apply' | t }}</button>
+            </form>
+          </details>
 
-        <div class="cart-summary">
-          <p><strong>Subtotal:</strong> {{ cart.total_price | money }}</p>
-          <button class="btn btn--outline" type="submit" name="update">Update cart</button>
-          <button class="btn btn--primary" type="submit" name="checkout">Checkout</button>
+          {%- if settings.cart_show_shipping_estimate -%}
+            <p class="text-small cart-page__shipping-note">
+              {% render 'icon', name: 'truck', size: 14 %} {{ 'cart.shipping_estimate' | t }}
+            </p>
+          {%- endif -%}
+
+          <p class="text-small cart-page__tax-note">{{ 'cart.tax_note' | t }}</p>
+
+          <a href="{{ routes.checkout_url }}" class="btn btn--primary btn--full">{{ 'cart.checkout' | t }}</a>
+          <a href="{{ routes.all_products_collection_url }}" class="btn btn--ghost btn--full">{{ 'cart.continue_shopping' | t }}</a>
+
+          {%- if settings.cart_show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+            <div class="cart-page__payment-icons">
+              {%- for type in shop.enabled_payment_types -%}
+                {{ type | payment_type_svg_tag: class: 'cart-page__payment-icon' }}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+
+          {% render 'trust-badges' %}
         </div>
-      </form>
-    {% endif %}
+      </div>
+    {%- else -%}
+      {% render 'cart-empty-state' %}
+    {%- endif -%}
   </div>
 </section>
+
+{%- if cart.item_count > 0 -%}
+  {% render 'product-recommendations', product: cart.items.first.product, heading: settings.cart_cross_sell_title, intent: 'complementary' %}
+
+  {%- if settings.cart_show_recently_viewed -%}
+    <section class="section section--rhythm">
+      <div class="container container--wide">
+        {% render 'recently-viewed' %}
+      </div>
+    </section>
+  {%- endif -%}
+{%- endif -%}
 
 {% schema %}
 {

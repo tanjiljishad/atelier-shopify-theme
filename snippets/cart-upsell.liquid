@@ -1,0 +1,42 @@
+{%- comment -%}
+  "Pairs well with" upsell strip (spec §7: "2 mini cards, one-tap add").
+  Rendered inline inside cart-drawer.liquid rather than fetched separately —
+  the whole drawer already re-renders via the cart AJAX API's `sections`
+  param after every change (see assets/cart-utils.js), so a second,
+  independent async fetch just for this strip would be redundant.
+
+  Uses Shopify's native recommendation engine (intent: 'complementary',
+  distinct from the PDP's 'related' — see sections/related-products.liquid)
+  based on the cart's first item, and reuses product-form-button.liquid's
+  existing <quick-add-button> wiring verbatim for "one-tap add" — that
+  element already does a real /cart/add.js call and dispatches `cart:updated`
+  (built in Milestone 4), so this needs zero new add-to-cart logic.
+
+  "Mini cards" intentionally don't reuse the full product-card.liquid (badges,
+  hover states, wishlist/compare actions) — too heavy for a compact strip;
+  composes responsive-image/price/product-form-button directly instead, same
+  approach as Milestone 7's complete-the-look.liquid.
+{%- endcomment -%}
+{%- if settings.cart_show_upsell and cart.item_count > 0 -%}
+  {% recommendations product: cart.items.first.product, limit: 2, intent: 'complementary' %}
+    {%- if recommendations.performed and recommendations.products_count > 0 -%}
+      <div class="cart-upsell">
+        <p class="kicker">{{ 'cart.upsell_heading' | t }}</p>
+        <div class="cart-upsell__items">
+          {%- for recommended_product in recommendations.products -%}
+            <div class="cart-upsell__item">
+              <a href="{{ recommended_product.url }}" class="cart-upsell__media aspect-ratio" style="aspect-ratio: 1/1;" tabindex="-1" aria-hidden="true">
+                {% render 'responsive-image', image: recommended_product.featured_image, sizes: '64px', wrap: false %}
+              </a>
+              <div class="cart-upsell__info">
+                <a href="{{ recommended_product.url }}" class="cart-upsell__title">{{ recommended_product.title }}</a>
+                {% render 'price', product: recommended_product, size: 'card' %}
+              </div>
+              {% render 'product-form-button', product: recommended_product %}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  {% endrecommendations %}
+{%- endif -%}
